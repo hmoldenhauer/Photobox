@@ -14,6 +14,11 @@ It depends on the output name of the image.
 2. `photo.py line 83`
 This line depends on the output of your presenter
 
+3. `telegram.py line 164`
+It depends on the output name of the image.
+
+4. `webinterface/routes.py line 42`
+It depends on the output name of the image.
 
 ## How to start
 First install the required packages:
