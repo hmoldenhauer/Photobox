@@ -9,6 +9,8 @@ import sqlite3 as sq
 from collections import Counter
 import matplotlib.pyplot as plt
 
+homefolder = '/home/pi/repos/Photobox'
+imagefolder = "/home/pi/Pictures"
 
 # get the ID of your telegram bot
 def get_ID():
@@ -33,9 +35,9 @@ class PiPhotobox(object):
         # id of the photobox admin
         self.admin_id = int(np.genfromtxt(path_to_admin_id,unpack = True))
         # user_log is a db to save the user_data
-        self.connection_user_log = sq.connect('/home/pi/rasberry/party_photobox/stats_dats/user_log.dat', check_same_thread=False)
+        self.connection_user_log = sq.connect(homefolder + '/stats_dats/user_log.dat', check_same_thread=False)
         # image_taken is a db to keep track of all taken images
-        self.connection_number_log = sq.connect('/home/pi/rasberry/party_photobox/stats_dats/image_taken.dat', check_same_thread=False)
+        self.connection_number_log = sq.connect(homefolder + '/stats_dats/image_taken.dat', check_same_thread=False)
         # get the cursor to both db's
         self.baseCursor = self.connection_user_log.cursor()
         self.image_numberCursor = self.connection_number_log.cursor()
@@ -66,13 +68,13 @@ class PiPhotobox(object):
       plt.bar(x_pos,number_list)
       plt.xticks(x_pos,name_list)
       plt.ylabel('Anzahl Downloads')
-      plt.savefig('/home/pi/rasberry/party_photobox/stats_dats/user_statistic.png')
+      plt.savefig(homefolder + '/stats_dats/user_statistic.png')
 
 
 
       ### Send requested Plot to the User
       piBot.sendMessage(chat_id, str('Hier die Nutzerstatistik:'))
-      piBot.sendPhoto(chat_id, photo=open('/home/pi/rasberry/party_photobox/stats_dats/user_statistic.png', 'rb'))
+      piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/user_statistic.png', 'rb'))
 
 
 
@@ -96,7 +98,7 @@ class PiPhotobox(object):
       plt.xticks(range(min(image_number_log), max(image_number_log) + 2, 1))
       plt.xlabel('Bildnummer')
       plt.ylabel('Anzahl Downloads')
-      plt.savefig('/home/pi/rasberry/party_photobox/stats_dats/number_downloads.jpg')
+      plt.savefig(homefolder + '/stats_dats/number_downloads.jpg')
 
       #### Generate a list with the two most requested images ##############################################################################
 
@@ -107,7 +109,7 @@ class PiPhotobox(object):
         'Dahinter ist Bildnummer ' + str(image_number_log_max[1][0]) + ' \n mit ' + str(image_number_log_max[1][1]) + ' Downloads, dass zweit gefragteste Bild.')
 
       piBot.sendMessage(chat_id, str('Hier ist die Fotonnachfragestatistik:'))
-      piBot.sendPhoto(chat_id, photo=open('/home/pi/rasberry/party_photobox/stats_dats/number_downloads.jpg', 'rb'))
+      piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/number_downloads.jpg', 'rb'))
 
       return 0
 
@@ -140,10 +142,10 @@ class PiPhotobox(object):
       plt.xlabel('Uhrzeit')
       plt.ylabel(ylabel_name)
       plt.grid(axis='y', alpha = 0.8)
-      plt.savefig('/home/pi/rasberry/party_photobox/stats_dats/time_based_statistic.jpg')
+      plt.savefig(homefolder + '/stats_dats/time_based_statistic.jpg')
 
       piBot.sendMessage(chat_id, str('Hier ist die zeitaufgelöste Statistik:'))
-      piBot.sendPhoto(chat_id, photo=open('/home/pi/rasberry/party_photobox/stats_dats/time_based_statistic.jpg', 'rb'))
+      piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/time_based_statistic.jpg', 'rb'))
 
       return 0
 
@@ -239,7 +241,7 @@ if __name__ == '__main__':
   piBot = tp.Bot( get_ID() )
   piphotobox = PiPhotobox('admin_id.txt')
 
-  os.chdir("/media/pi/Marten/photo_folder")
+  os.chdir(imagefolder)
 
   try:
       # Start the Telegramm chat
