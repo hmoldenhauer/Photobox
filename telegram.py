@@ -23,8 +23,8 @@ def get_ID():
             else:
                 print(bot_ID)
                 return bot_ID
-      except IOError:
-          print('No file found with the name ID.txt')
+    except IOError:
+        print('No file found with the name ID.txt')
 
 
 class PiPhotobox(object):
