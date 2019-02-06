@@ -9,8 +9,7 @@ import sqlite3 as sq
 from collections import Counter
 import matplotlib.pyplot as plt
 
-homefolder = '/home/pi/repos/Photobox'
-imagefolder = "/home/pi/Pictures"
+from configuration import *
 
 # get the ID of your telegram bot
 def get_ID():

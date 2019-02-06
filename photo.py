@@ -5,6 +5,8 @@ from pynput.keyboard import Listener
 import datetime as dtime
 import sqlite3 as sq
 
+from configuration import *
+
 # Status LED
 # These Leds will glow, when a image is processed
 RedLedPin_1 = 7
@@ -14,7 +16,6 @@ RedLedPin_4 = 16
 
 # This Led will glow, when the photobox is ready to take an image
 GreenLedPin = 12
-
 
 def setup():
     GPIO.setmode(GPIO.BOARD)       # Numbers GPIOs by physical location
@@ -113,7 +114,7 @@ def on_press(key):
 
 # Hard coded path to save media
 # in this case I used a usb_stick
-os.chdir("/media/pi/Marten/photo_folder")
+os.chdir(imagefolder)
 
 # Hard coded global variables
 global connection_number_log
@@ -122,7 +123,7 @@ global image_numberCursor
 # connection to the db which includes the max_number of image taken
 # check_same_thread=True enables the possibility to read/write
 # the db with more than one program
-connection_number_log = sq.connect('/home/pi/rasberry/party_photobox/stats_dats/image_taken.dat',
+connection_number_log = sq.connect(homefolder + '/stats_dats/image_taken.dat',
                                    check_same_thread=False)
 image_numberCursor = connection_number_log.cursor()
 
