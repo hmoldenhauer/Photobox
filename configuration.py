@@ -5,3 +5,5 @@ photo_key = "u'.'"
 stop_key = "u'x'"
 
 admin = 'Henning'
+
+keyfile = 'key.txt'
