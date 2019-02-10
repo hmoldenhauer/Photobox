@@ -41,7 +41,6 @@ class PiPhotobox(object):
         self.baseCursor = self.connection_user_log.cursor()
         self.image_numberCursor = self.connection_number_log.cursor()
 
-
     def end_connection(self):
         self.connection_user_log.close()
         self.connection_number_log.close()
@@ -69,20 +68,15 @@ class PiPhotobox(object):
       plt.ylabel('Anzahl Downloads')
       plt.savefig(homefolder + '/stats_dats/user_statistic.png')
 
-
-
       ### Send requested Plot to the User
       piBot.sendMessage(chat_id, str('Hier die Nutzerstatistik:'))
       piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/user_statistic.png', 'rb'))
-
-
 
       return 0
 
     ###########################################################################################################################################################################
     ### Function to generated a Histogram, which shows the how often a image was got a download request. Further, you get the image number of the two most requested images ###
     ###########################################################################################################################################################################
-
     def most_popular_statistic(self,chat_id):
 
       self.baseCursor.execute(""" SELECT Image_Number FROM user_log""")
@@ -100,7 +94,6 @@ class PiPhotobox(object):
       plt.savefig(homefolder + '/stats_dats/number_downloads.jpg')
 
       #### Generate a list with the two most requested images ##############################################################################
-
       image_number_log_max = Counter(image_number_log).most_common(2) ## Get the number with the most requests
 
       ## Send the requested stats
@@ -111,7 +104,6 @@ class PiPhotobox(object):
       piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/number_downloads.jpg', 'rb'))
 
       return 0
-
 
     ##########################################################################################################################
     ### Function to generated a timebased Histogram, that shows how many images were downloaded during a spezific timeslot ###
@@ -124,7 +116,6 @@ class PiPhotobox(object):
           ### Generate a int list with all the timestamps. A Stamp is formatted like this: '20:30'
           time_stampt_list = [ int(i[0].split(':')[0]) for i in self.baseCursor.fetchall()]
 
-
       elif name == 'taken':
           self.image_numberCursor.execute(""" SELECT Time_Stampt FROM image_taken""")
           ylabel_name = 'Anzahl Fotos'
@@ -132,7 +123,6 @@ class PiPhotobox(object):
 
       else:
         pass
-
 
       ### Generated a plot
       plt.clf()
@@ -147,8 +137,6 @@ class PiPhotobox(object):
       piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/time_based_statistic.jpg', 'rb'))
 
       return 0
-
-
 
     def send_image(self, msg):
         # Get the required information of a request
@@ -182,14 +170,8 @@ class PiPhotobox(object):
                   try:
                     piBot.sendMessage(chat_id,str('Du erhälst Bild ') + str(command[1]) )
 
-                    ### For the Sony Alpha 6000 ###############################################################
+                    # send image
                     piBot.sendPhoto(chat_id, photo=open('./photobox_' + str(command[1]).zfill(4) + '.jpg', 'rb'))
-                    ############################################################################################
-
-                    ### For the Canon camera ###############################################################
-                    #canon_offset = 7000
-                    #piBot.sendPhoto(chat_id, photo=open('./IMG_' + str( int(command[1])+canon_offset) + '.JPG', 'rb'))
-                    ############################################################################################
 
                     self.baseCursor.execute("""INSERT INTO user_log VALUES("{}", {}, {}, "{}")""".format(str(chat_name),chat_id, int(command[1]), str(dtime.datetime.now().time().strftime("%H:%M"))) )
                     self.connection_user_log.commit()
@@ -244,12 +226,10 @@ class PiPhotobox(object):
            piBot.sendMessage(chat_id, admin + ' wird benachrichtigt.')
            piBot.sendMessage(self.admin_id,'Hilfeanfrage von: ' + str(chat_name))
 
-
         else:
           piBot.sendMessage(chat_id, 'Leider ist dein Befehl nicht in der Datenbank verzeichnet.\n Hier nochmal deine Möglichkeiten:\n\n --- Image image_number --- \n Hier erhälst du das Bild mit der Nummer image_number direkt auf dein Handy geschickt.\n Bsp: Image 7\n Um Bildnummer 7 zuerhalten. \n Statt einer Zahl kannst du mit Image last auch das letzte Bild anfordern. \n\n --- Stat keyword ---\n Hier erhälst du verschiedene Nutzerstatistiken der Photobox. Als Keyword stehen zur Verfügung:\n name, popular, timebased und taken.\nBsp:\n stat name \n\n --- Help ---\n Hier wird ' + admin + ' auf seinem Handy benachrichtigt und kommt schnellstmöglichst zu dir. Wenn er nicht kommt solltest du ihn suchen gehen.')
 
 ### Start Photobox if used as main class
-
 if __name__ == '__main__':
   piBot = tp.Bot( get_ID() )
   piphotobox = PiPhotobox('admin_id.txt')
@@ -267,15 +247,3 @@ if __name__ == '__main__':
   except KeyboardInterrupt:
         print('Programm wird beendet')
         piphotobox.end_connection()
-
-
-
-
-###
-# Implementierung der User_Stats Database
-# Einfügen der Funktionen
-# Einfügen einer KeyboardInterrupt Funtkion
-# Einfügen der FotoDatabase
-# mehr try Funktionen
-# Erst Erstellung der User_stat Databbase
-# Shot or Beer: Random werden Leute aus einer Liste ausgewählt die mit einem trinken müssen. Hierbei ist es nur möglich User zuverwenden die bereits ein Bild requested haben.
