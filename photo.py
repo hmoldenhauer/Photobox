@@ -63,10 +63,14 @@ def take_a_photo():
     # rename file, this depends on your camera !
     ############### The os.rename is needed if you use a Sony Alpha 6000 ################################################################################
 
-    #os.rename( 'capt0000.jpg', 'photobox_' + str(int(max_file_number)) + '.jpg') #rename file
+    os.rename( 'capt0000.jpg', 'photobox_' + str(int(max_file_number)) + '.jpg') #rename file
+    f = open(homefolder + '/stats_dats/max_file_number.txt', 'w')
+    f.write('%i' % max_file_number)
+    f.close()
+
     # save photo_number and a timestamp to the db
 
-    #image_numberCursor.execute("""INSERT INTO image_taken VALUES({}, "{}")""".format(max_file_number,dtime.datetime.now().time().strftime("%H:%M")) )
+    image_numberCursor.execute("""INSERT INTO image_taken VALUES({}, "{}")""".format(max_file_number,dtime.datetime.now().time().strftime("%H:%M")) )
 
     ###################################################################################################################################
 
@@ -102,9 +106,10 @@ def destroy():
 # Function which detects the input key of the presenter
 def on_press(key):
     # "u'.'" was sended by the presenter when the middle button was pressed
-    if str(key) == "u'.'":
+    if str(key) == photo_key:
         take_a_photo()
-    elif str(key) == "u'x'":
+        #print(str(key))
+    elif str(key) == stop_key:
         Listener.stop()
         destroy()
     else:

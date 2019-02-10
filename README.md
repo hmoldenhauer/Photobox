@@ -35,6 +35,8 @@ First install the required packages:
 
 `pip install flask`
 
+`pip install flask_socketio`
+
 `pip --no-cache-dir install matplotlib`   # optimized for low memory on raspi
 
 You need a file named `ID.txt` where the ID of your telegram bot is saved.
@@ -49,3 +51,6 @@ After installing all essential packages just run the following three programs:
 `python webinterface.py`
 
 `python photo.py`
+
+Need to kill gphoto2
+https://www.youtube.com/watch?v=1eAYxnSU2aw
