@@ -41,7 +41,7 @@ def start_image_updater():
    
     # Generate the name for the html template. I was not sure how to use a variable in "url_for", so I trie this as workaround
     lastfolder = re.findall('([^\/]+$)', imagefolder)[0]
-    pic_name = "/" + lastfolder + "/photobox_" + str(int(photo_number)) + ".jpg"
+    pic_name = "/" + lastfolder + "/photobox_" + str(int(photo_number)).zfill(4) + ".jpg"
 
     emit_var = ['Bildnummer: ' + str(int(photo_number)), pic_name]
     socket.emit('update', emit_var)

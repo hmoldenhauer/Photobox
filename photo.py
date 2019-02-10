@@ -63,7 +63,7 @@ def take_a_photo():
     # rename file, this depends on your camera !
     ############### The os.rename is needed if you use a Sony Alpha 6000 ################################################################################
 
-    os.rename( 'capt0000.jpg', 'photobox_' + str(int(max_file_number)) + '.jpg') #rename file
+    os.rename( 'capt0000.jpg', 'photobox_' + str(int(max_file_number)).zfill(4) + '.jpg') #rename file
     f = open(homefolder + '/stats_dats/max_file_number.txt', 'w')
     f.write('%i' % max_file_number)
     f.close()
