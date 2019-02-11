@@ -46,9 +46,9 @@ It might look like `110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw`.
 With that set up, you can start to configure your Bot.
 1. You need to create a file named `ID.txt` in your Photobox repo. Here you need to insert
    the ID of your telegram bot. BotFather send it to you.
-2. You need to create a file named 'key.txt'. This will be the login code users have to enter
+2. You need to create a file named `key.txt`. This will be the login code users have to enter
    the first time they have contact to the bot.
-3. Configure the 'configuration.py' accordingly to your setup.
+3. Configure the `configuration.py` accordingly to your setup.
 
 #### Set the admin ID of your Photobox
 You need to change the `admin_id.txt`. There the User-ID of the admin
