@@ -152,142 +152,139 @@ class PiPhotobox(object):
         # What was the username of the person who has requested an image or plot
         chat_name =  msg['chat']['username']
         
-        # Idee: authorized.db
-        # username + authorized (yes, no)
-        # check authorized.db and only if authorized allow sending of images
-        
-        # check if user exists in auth list
-        # if user in auth list check key
-        # if key correct set auth 1
-        
-        try:
-            self.authCursor.execute("""SELECT Authentification FROM user_auth WHERE Username='{us}'""".format(us=chat_name))
-            authorized = self.authCursor.fetchone()[0]
+        # check if bot is configured properly
+        if self.admin_id == 1:
+            chat_id = msg['chat']['id']
+            piBot.sendMessage(chat_id, 'Die admin-id ist: ' + str(chat_id))
+        else:
+            try:
+                self.authCursor.execute("""SELECT Authentification FROM user_auth WHERE Username='{us}'""".format(us=chat_name))
+                authorized = self.authCursor.fetchone()[0]
             
-            if authorized == 1:
-                # alle funktionen nutzbar
-                ### Split Command message to get the command and eventually the image_number ###
+                if authorized == 1:
+                    # alle funktionen nutzbar
+                    ### Split Command message to get the command and eventually the image_number ###
 
-                command = command.split()
-                # Check the kind of command
-                if (command[0] == u'Image'):
+                    command = command.split()
+                    # Check the kind of command
+                    if (command[0] == u'Image'):
                 
-                    # Fehler möglich, bei erstem Bild und erstem User
-		    if (command[1] == 'last'):
-		        # get number from max_file_number.txt
-		        f = open(homefolder + '/stats_dats/max_file_number.txt', 'r')
-    		        max_file_number = [int(x) for x in next(f).split()]
-                        f.close()
+                        # Fehler möglich, bei erstem Bild und erstem User
+                        if (command[1] == 'last'):
+                            # get number from max_file_number.txt
+                            f = open(homefolder + '/stats_dats/max_file_number.txt', 'r')
+                            max_file_number = [int(x) for x in next(f).split()]
+                            f.close()
 
-                        piBot.sendMessage(chat_id,str('Du erhälst Bild ') + str(max_file_number[0]) )
+                            piBot.sendMessage(chat_id,str('Du erhälst Bild ') + str(max_file_number[0]) )
 
-                        piBot.sendPhoto(chat_id, photo=open('./photobox_' + str(max_file_number[0]).zfill(4) + '.jpg', 'rb'))
+                            piBot.sendPhoto(chat_id, photo=open('./photobox_' + str(max_file_number[0]).zfill(4) + '.jpg', 'rb'))
 
-                        self.baseCursor.execute("""INSERT INTO user_log VALUES("{}", {}, {}, "{}")""".format(str(chat_name),chat_id, int(max_file_number[0]), str(dtime.datetime.now().time().strftime("%H:%M"))) )
-                        self.connection_user_log.commit()
-
-                    else:
-                        try:
-                            piBot.sendMessage(chat_id,str('Du erhälst Bild ') + str(command[1]) )
-
-                            # send image
-                            piBot.sendPhoto(chat_id, photo=open('./photobox_' + str(command[1]).zfill(4) + '.jpg', 'rb'))
-
-                            self.baseCursor.execute("""INSERT INTO user_log VALUES("{}", {}, {}, "{}")""".format(str(chat_name),chat_id, int(command[1]), str(dtime.datetime.now().time().strftime("%H:%M"))) )
+                            self.baseCursor.execute("""INSERT INTO user_log VALUES("{}", {}, {}, "{}")""".format(str(chat_name),chat_id, int(max_file_number[0]), str(dtime.datetime.now().time().strftime("%H:%M"))) )
                             self.connection_user_log.commit()
-
-                        # No table was founded error
-                        # Solution: Create new table
-                        except sq.OperationalError:
-
-                            self.baseCursor.execute(""" CREATE TABLE user_log(Username TEXT ,User_ID SMALLINT, Image_Number SMALLINT,Time_Stampt TEXT)""")
-                            self.baseCursor.execute("""INSERT INTO user_log VALUES("{}", {}, {}, "{}")""".format(str(chat_name),chat_id, int(command[1]), str(dtime.datetime.now().time().strftime("%H:%M"))) )
-                            self.connection_user_log.commit()
-                            pass
-
-                        # The requested image_number does not exist
-                        # Solution, Photobox answers the person and sends a message
-                        # to the admin
-                        except IOError as e:
-                            piBot.sendMessage(chat_id, 'Es gibt kein Foto mit der Nummer: ' + str(command[1]) )
-                            piBot.sendMessage(self.admin_id, 'Nicht vorhandenes Foto wurde angefragt: ' + str(command[1])+'.\n\n Hier zur Sicherheit nochmal der Fehlercode: \n\n' + str(e) + '\n\n Der ausführende User ist: \n' + str(chat_name))
-                            pass
-
-                        # A unknown error occured
-                        # Solution, Admin and person gets a message
-                        except Exception as e:
-                            print(e)
-                            piBot.sendMessage(chat_id, 'Ein unbekannter Fehler ist aufgetreten. ' + admin + ' wird benachrichtigt.')
-                            piBot.sendMessage(self.admin_id, 'Es ist ein Fehler bei dem verschicken des Fotos mit der Nummer ' + str(command[1]) + ' aufgetreten. Der Fehler Code lautet: \n' + str(e)+ '.\n Auf den Fehler wird mit \pass reagiert. Der verursachende User ist: \n' + str(chat_name))
-                            pass
-
-                elif command[0] == u'Stat':
-                    try:
-                        # Different possibility of stats
-                        if command[1] == u'name':
-                            self.name_downloads_statistic(chat_id)
-
-                        elif command[1] == u'popular':
-                            self.most_popular_statistic(chat_id)
-
-                        elif command[1] == u'timebased':
-                            self.time_based_statistic(chat_id,'timebased')
-
-                        elif command[1] == u'taken':
-                            self.time_based_statistic(chat_id,'taken')
 
                         else:
-                             piBot.sendMessage(chat_id, 'Leider ist deine Auswahl nicht dabei.\n Zur Verfügung stehen die Befehle: \n\n --- name --- : Dieser Befehl (ohne die --- ) zeigt dir an welcher User wie viel Bilder gedownloadet hat \n\n --- popular --- \n Dieser Befehl (ohne die --- ) zeigt dir die beliebtesten Bilder \n\n --- timebased--- \n Dieser Befehl (ohne die --- ) zeigt dir wie viele Bilder zu einer bestimmten Uhrzeit (stündlich) gedownloadet wurden \n\n --- taken ---\n Dieser Befehl (ohne die ---) zeigt dir wie viele Bilder zu einer bestimmten Uhrzeit (stündlich) mit der Photobox aufgenommen wurden')
-                    except IndexError:
-                        piBot.sendMessage(chat_id, 'Du hast das Keyword vergessen.\n Zur Verfügung stehen die Keywords: \n\n --- name --- \n Dieser Befehl (ohne die --- ) zeigt dir an welcher User wie viel Bilder gedownloadet hat \n\n --- popular --- \n Dieser Befehl (ohne die --- ) zeigt dir die beliebtesten Bilder \n\n --- timebased--- \n Dieser Befehl (ohne die --- ) zeigt dir wie viele Bilder zu einer bestimmten Uhrzeit (stündlich) gedownloadet wurden \n\n --- taken ---\n Dieser Befehl (ohne die ---) zeigt dir wie viele Bilder zu einer bestimmten Uhrzeit (stündlich) mit der Photobox aufgenommen wurden')
+                            try:
+                                piBot.sendMessage(chat_id,str('Du erhälst Bild ') + str(command[1]) )
 
-                elif command[0] == u'Help':
-                    piBot.sendMessage(chat_id, admin + ' wird benachrichtigt.')
-                    piBot.sendMessage(self.admin_id,'Hilfeanfrage von: ' + str(chat_name))
+                                # send image
+                                piBot.sendPhoto(chat_id, photo=open('./photobox_' + str(command[1]).zfill(4) + '.jpg', 'rb'))
 
-                else:
-                    piBot.sendMessage(chat_id, 'Leider ist dein Befehl nicht in der Datenbank verzeichnet.\n Hier nochmal deine Möglichkeiten:\n\n --- Image image_number --- \n Hier erhälst du das Bild mit der Nummer image_number direkt auf dein Handy geschickt.\n Bsp: Image 7\n Um Bildnummer 7 zuerhalten. \n Statt einer Zahl kannst du mit Image last auch das letzte Bild anfordern. \n\n --- Stat keyword ---\n Hier erhälst du verschiedene Nutzerstatistiken der Photobox. Als Keyword stehen zur Verfügung:\n name, popular, timebased und taken.\nBsp:\n stat name \n\n --- Help ---\n Hier wird ' + admin + ' auf seinem Handy benachrichtigt und kommt schnellstmöglichst zu dir. Wenn er nicht kommt solltest du ihn suchen gehen.')
-            else:
-                if (command == self.key):
-                    auth = 1
-                    try:
-                        self.authCursor.execute("""UPDATE user_auth SET Authentification={au} WHERE Username='{us}'""".format(au=auth, us=chat_name))
-                        self.connection_user_auth.commit()
-                    except sq.OperationalError:
+                                self.baseCursor.execute("""INSERT INTO user_log VALUES("{}", {}, {}, "{}")""".format(str(chat_name),chat_id, int(command[1]), str(dtime.datetime.now().time().strftime("%H:%M"))) )
+                                self.connection_user_log.commit()
+
+                            # No table was founded error
+                            # Solution: Create new table
+                            except sq.OperationalError:
+
+                                self.baseCursor.execute(""" CREATE TABLE user_log(Username TEXT ,User_ID SMALLINT, Image_Number SMALLINT,Time_Stampt TEXT)""")
+                                self.baseCursor.execute("""INSERT INTO user_log VALUES("{}", {}, {}, "{}")""".format(str(chat_name),chat_id, int(command[1]), str(dtime.datetime.now().time().strftime("%H:%M"))) )
+                                self.connection_user_log.commit()
+                                pass
+
+                            # The requested image_number does not exist
+                            # Solution, Photobox answers the person and sends a message
+                            # to the admin
+                            except IOError as e:
+                                piBot.sendMessage(chat_id, 'Es gibt kein Foto mit der Nummer: ' + str(command[1]) )
+                                piBot.sendMessage(self.admin_id, 'Nicht vorhandenes Foto wurde angefragt: ' + str(command[1])+'.\n\n Hier zur Sicherheit nochmal der Fehlercode: \n\n' + str(e) + '\n\n Der ausführende User ist: \n' + str(chat_name))
+                                pass
+
+                            # A unknown error occured
+                            # Solution, Admin and person gets a message
+                            except Exception as e:
+                                print(e)
+                                piBot.sendMessage(chat_id, 'Ein unbekannter Fehler ist aufgetreten. ' + admin + ' wird benachrichtigt.')
+                                piBot.sendMessage(self.admin_id, 'Es ist ein Fehler bei dem verschicken des Fotos mit der Nummer ' + str(command[1]) + ' aufgetreten. Der Fehler Code lautet: \n' + str(e)+ '.\n Auf den Fehler wird mit \pass reagiert. Der verursachende User ist: \n' + str(chat_name))
+                                pass
+
+                    elif command[0] == u'Stat':
                         try:
-                            self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
-                            self.connection_user_auth.commit()                       
-                        except sq.OperationalError:
-                            self.authCursor.execute("""CREATE TABLE user_auth (Username TEXT ,Authentification SMALLINT, Time_Stamp TEXT)""")
-    
-                            self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
-                            self.connection_user_auth.commit()
-                            pass
-                        pass
-            
-                    piBot.sendMessage(chat_id,str('Du kannst die Photobox jetzt nutzen.'))
+                            # Different possibility of stats
+                            if command[1] == u'name':
+                                self.name_downloads_statistic(chat_id)
+
+                            elif command[1] == u'popular':
+                                self.most_popular_statistic(chat_id)
+
+                            elif command[1] == u'timebased':
+                                self.time_based_statistic(chat_id,'timebased')
+
+                            elif command[1] == u'taken':
+                                self.time_based_statistic(chat_id,'taken')
+
+                            else:
+                                piBot.sendMessage(chat_id, 'Leider ist deine Auswahl nicht dabei.\n Zur Verfügung stehen die Befehle: \n\n --- name --- : Dieser Befehl (ohne die --- ) zeigt dir an welcher User wie viel Bilder gedownloadet hat \n\n --- popular --- \n Dieser Befehl (ohne die --- ) zeigt dir die beliebtesten Bilder \n\n --- timebased--- \n Dieser Befehl (ohne die --- ) zeigt dir wie viele Bilder zu einer bestimmten Uhrzeit (stündlich) gedownloadet wurden \n\n --- taken ---\n Dieser Befehl (ohne die ---) zeigt dir wie viele Bilder zu einer bestimmten Uhrzeit (stündlich) mit der Photobox aufgenommen wurden')
+                        except IndexError:
+                            piBot.sendMessage(chat_id, 'Du hast das Keyword vergessen.\n Zur Verfügung stehen die Keywords: \n\n --- name --- \n Dieser Befehl (ohne die --- ) zeigt dir an welcher User wie viel Bilder gedownloadet hat \n\n --- popular --- \n Dieser Befehl (ohne die --- ) zeigt dir die beliebtesten Bilder \n\n --- timebased--- \n Dieser Befehl (ohne die --- ) zeigt dir wie viele Bilder zu einer bestimmten Uhrzeit (stündlich) gedownloadet wurden \n\n --- taken ---\n Dieser Befehl (ohne die ---) zeigt dir wie viele Bilder zu einer bestimmten Uhrzeit (stündlich) mit der Photobox aufgenommen wurden')
+
+                    elif command[0] == u'Help':
+                        piBot.sendMessage(chat_id, admin + ' wird benachrichtigt.')
+                        piBot.sendMessage(self.admin_id,'Hilfeanfrage von: ' + str(chat_name))
+
+                    else:
+                        piBot.sendMessage(chat_id, 'Leider ist dein Befehl nicht in der Datenbank verzeichnet.\n Hier nochmal deine Möglichkeiten:\n\n --- Image image_number --- \n Hier erhälst du das Bild mit der Nummer image_number direkt auf dein Handy geschickt.\n Bsp: Image 7\n Um Bildnummer 7 zuerhalten. \n Statt einer Zahl kannst du mit Image last auch das letzte Bild anfordern. \n\n --- Stat keyword ---\n Hier erhälst du verschiedene Nutzerstatistiken der Photobox. Als Keyword stehen zur Verfügung:\n name, popular, timebased und taken.\nBsp:\n stat name \n\n --- Help ---\n Hier wird ' + admin + ' auf seinem Handy benachrichtigt und kommt schnellstmöglichst zu dir. Wenn er nicht kommt solltest du ihn suchen gehen.')
                 else:
-                    piBot.sendMessage(chat_id,str('Du musst zuerst den Code eingeben um die Photobox zu nutzen. Frag ' + admin + ' danach.'))
+                    if (command == self.key):
+                        auth = 1
+                        try:
+                            self.authCursor.execute("""UPDATE user_auth SET Authentification={au} WHERE Username='{us}'""".format(au=auth, us=chat_name))
+                            self.connection_user_auth.commit()
+                        except sq.OperationalError:
+                            try:
+                                self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
+                                self.connection_user_auth.commit()                       
+                            except sq.OperationalError:
+                                self.authCursor.execute("""CREATE TABLE user_auth (Username TEXT ,Authentification SMALLINT, Time_Stamp TEXT)""")
+    
+                                self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
+                                self.connection_user_auth.commit()
+                                pass
+                            pass
+            
+                        piBot.sendMessage(chat_id,str('Du kannst die Photobox jetzt nutzen.'))
+                    else:
+                        piBot.sendMessage(chat_id,str('Du musst zuerst den Code eingeben um die Photobox zu nutzen. Frag ' + admin + ' danach.'))
 
                 
-        except sq.OperationalError:
-            auth = 0
-            try:
-                self.authCursor.execute("""UPDATE user_auth SET Authentification={au} WHERE Username='{us}'""".format(au=auth, us=chat_name))
-                self.connection_user_auth.commit()
             except sq.OperationalError:
+                auth = 0
                 try:
-                    self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
+                    self.authCursor.execute("""UPDATE user_auth SET Authentification={au} WHERE Username='{us}'""".format(au=auth, us=chat_name))
                     self.connection_user_auth.commit()
                 except sq.OperationalError:
-                    self.authCursor.execute("""CREATE TABLE user_auth (Username TEXT, Authentification SMALLINT, Time_Stamp TEXT)""")
+                    try:
+                        self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
+                        self.connection_user_auth.commit()
+                    except sq.OperationalError:
+                        self.authCursor.execute("""CREATE TABLE user_auth (Username TEXT, Authentification SMALLINT, Time_Stamp TEXT)""")
 
-                    self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
-                    self.connection_user_auth.commit()
+                        self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
+                        self.connection_user_auth.commit()
+                        pass
                     pass
-                pass
             
-            piBot.sendMessage(chat_id,str('Du musst zuerst den Code eingeben um die Photobox zu nutzen. Frag ' + admin + ' danach.'))
+                piBot.sendMessage(chat_id,str('Du musst zuerst den Code eingeben um die Photobox zu nutzen. Frag ' + admin + ' danach.'))
 
 
 ### Start Photobox if used as main class
