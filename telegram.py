@@ -33,7 +33,7 @@ class PiPhotobox(object):
         self.admin_id = int(np.genfromtxt(path_to_admin_id,unpack = True))
         # key needed to be allowed to get images
         self.key = get_ID(keyfile)
-
+        
         # user_auth is a db to save the authorization data
         self.connection_user_auth = sq.connect(homefolder + '/stats_dats/user_auth.dat', check_same_thread=False)
         # user_log is a db to save the user_data
@@ -151,7 +151,7 @@ class PiPhotobox(object):
         chat_id = msg['chat']['id']
         # What was the username of the person who has requested an image or plot
         chat_name =  msg['chat']['username']
-
+        
         # check if bot is configured properly
         if self.admin_id == 1:
             chat_id = msg['chat']['id']
@@ -160,37 +160,15 @@ class PiPhotobox(object):
             try:
                 self.authCursor.execute("""SELECT Authentification FROM user_auth WHERE Username='{us}'""".format(us=chat_name))
                 authorized = self.authCursor.fetchone()[0]
-
-                if authorized == []:
-                    if (command == self.key):
-                        auth = 1
-                        try:
-                            self.authCursor.execute("""UPDATE user_auth SET Authentification={au} WHERE Username='{us}'""".format(au=auth, us=chat_name))
-                            self.connection_user_auth.commit()
-                        except sq.OperationalError:
-                            try:
-                                self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
-                                self.connection_user_auth.commit()
-                            except sq.OperationalError:
-                                self.authCursor.execute("""CREATE TABLE user_auth (Username TEXT ,Authentification SMALLINT, Time_Stamp TEXT)""")
-
-                                self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
-                                self.connection_user_auth.commit()
-                                pass
-                            pass
-
-                        piBot.sendMessage(chat_id,str('Du kannst die Photobox jetzt nutzen.'))
-                    else:
-                        piBot.sendMessage(chat_id,str('Du musst zuerst den Code eingeben um die Photobox zu nutzen. Frag ' + admin + ' danach.'))
-
-                elif authorized == 1:
+            
+                if authorized == 1:
                     # alle funktionen nutzbar
                     ### Split Command message to get the command and eventually the image_number ###
 
                     command = command.split()
                     # Check the kind of command
                     if (command[0] == u'Image'):
-
+                
                         # Fehler möglich, bei erstem Bild und erstem User
                         if (command[1] == 'last'):
                             # get number from max_file_number.txt
@@ -266,8 +244,29 @@ class PiPhotobox(object):
 
                     else:
                         piBot.sendMessage(chat_id, 'Leider ist dein Befehl nicht in der Datenbank verzeichnet.\n Hier nochmal deine Möglichkeiten:\n\n --- Image image_number --- \n Hier erhälst du das Bild mit der Nummer image_number direkt auf dein Handy geschickt.\n Bsp: Image 7\n Um Bildnummer 7 zuerhalten. \n Statt einer Zahl kannst du mit Image last auch das letzte Bild anfordern. \n\n --- Stat keyword ---\n Hier erhälst du verschiedene Nutzerstatistiken der Photobox. Als Keyword stehen zur Verfügung:\n name, popular, timebased und taken.\nBsp:\n stat name \n\n --- Help ---\n Hier wird ' + admin + ' auf seinem Handy benachrichtigt und kommt schnellstmöglichst zu dir. Wenn er nicht kommt solltest du ihn suchen gehen.')
+                else:
+                    if (command == self.key):
+                        auth = 1
+                        try:
+                            self.authCursor.execute("""UPDATE user_auth SET Authentification={au} WHERE Username='{us}'""".format(au=auth, us=chat_name))
+                            self.connection_user_auth.commit()
+                        except sq.OperationalError:
+                            try:
+                                self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
+                                self.connection_user_auth.commit()                       
+                            except sq.OperationalError:
+                                self.authCursor.execute("""CREATE TABLE user_auth (Username TEXT ,Authentification SMALLINT, Time_Stamp TEXT)""")
+    
+                                self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
+                                self.connection_user_auth.commit()
+                                pass
+                            pass
+            
+                        piBot.sendMessage(chat_id,str('Du kannst die Photobox jetzt nutzen.'))
+                    else:
+                        piBot.sendMessage(chat_id,str('Du musst zuerst den Code eingeben um die Photobox zu nutzen. Frag ' + admin + ' danach.'))
 
-
+                
             except sq.OperationalError:
                 auth = 0
                 try:
@@ -284,7 +283,7 @@ class PiPhotobox(object):
                         self.connection_user_auth.commit()
                         pass
                     pass
-
+            
                 piBot.sendMessage(chat_id,str('Du musst zuerst den Code eingeben um die Photobox zu nutzen. Frag ' + admin + ' danach.'))
 
 
