@@ -22,6 +22,7 @@ Install the required packages:
 
 ```bash
 sudo apt-get install gphoto2
+sudo apt-get install imagemagick
 pip install RPi.GPIO
 pip install sh
 pip instal pynput

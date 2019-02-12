@@ -178,7 +178,7 @@ class PiPhotobox(object):
 
                             piBot.sendMessage(chat_id,str('Du erhälst Bild ') + str(max_file_number[0]) )
 
-                            piBot.sendPhoto(chat_id, photo=open('./photobox_' + str(max_file_number[0]).zfill(4) + '.jpg', 'rb'))
+                            piBot.sendPhoto(chat_id, photo=open('./photobox_small_' + str(max_file_number[0]).zfill(4) + '.jpg', 'rb'))
 
                             self.baseCursor.execute("""INSERT INTO user_log VALUES("{}", {}, {}, "{}")""".format(str(chat_name),chat_id, int(max_file_number[0]), str(dtime.datetime.now().time().strftime("%H:%M"))) )
                             self.connection_user_log.commit()
@@ -188,7 +188,7 @@ class PiPhotobox(object):
                                 piBot.sendMessage(chat_id,str('Du erhälst Bild ') + str(command[1]) )
 
                                 # send image
-                                piBot.sendPhoto(chat_id, photo=open('./photobox_' + str(command[1]).zfill(4) + '.jpg', 'rb'))
+                                piBot.sendPhoto(chat_id, photo=open('./photobox_small_' + str(command[1]).zfill(4) + '.jpg', 'rb'))
 
                                 self.baseCursor.execute("""INSERT INTO user_log VALUES("{}", {}, {}, "{}")""".format(str(chat_name),chat_id, int(command[1]), str(dtime.datetime.now().time().strftime("%H:%M"))) )
                                 self.connection_user_log.commit()

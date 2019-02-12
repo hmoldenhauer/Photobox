@@ -29,6 +29,12 @@ def take_a_photo():
 
     # rename file, this depends on your camera !
     os.rename( 'capt0000.jpg', 'photobox_' + str(int(max_file_number)).zfill(4) + '.jpg') #rename file
+    bashCommand = 'convert -geometry ' + str(int(int(image_width)/2)) + 'x' + str(int(int(image_height)/2)) + \
+                  ' -quality 90 ' + 'photobox_' + str(int(max_file_number)).zfill(4) + '.jpg' +\
+                  ' photobox_small_' + str(int(max_file_number)).zfill(4) + '.jpg'
+    print(bashCommand)
+    os.system(bashCommand)
+
     f = open(homefolder + '/stats_dats/max_file_number.txt', 'w')
     f.write('%i' % max_file_number)
     f.close()
@@ -72,6 +78,8 @@ global image_numberCursor
 connection_number_log = sq.connect(homefolder + '/stats_dats/image_taken.dat',
                                    check_same_thread=False)
 image_numberCursor = connection_number_log.cursor()
+
+print('Photobox running')
 
 
 # Let's take some images!!
