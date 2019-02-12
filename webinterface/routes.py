@@ -59,6 +59,7 @@ def test():
     image_number = '1'
     return flask.render_template('show_picture.html', image_name = image_name,
                                                       image_number = image_number,
-                                                      image_style = image_style,
+                                                      image_height = image_height,
+                                                      image_width = image_width,
                                                       bg_color = bg_color,
                                                       font_color = font_color)

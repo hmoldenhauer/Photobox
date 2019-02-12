@@ -20,7 +20,7 @@
     <body>
     <center>
     <p id=text style="font-size:50px; text-align:center; color: {{ font_color }}"> 1 </p>
-    <img src="{{ url_for('static', filename=image_name) }}" style="{{ image_style }}" class="center" id = 'imgid'/>
+    <img src="{{ url_for('static', filename=image_name) }}" style="width: {{ image_width }}px; height: {{ image_height }}px;" class="center" id = 'imgid'/>
     </center>
   </body>
 
