@@ -57,4 +57,8 @@ socket.init_app(app)
 def test():
     image_name = 'photobox_1.jpg'
     image_number = '1'
-    return flask.render_template('show_picture.html', image_name = image_name, image_number = image_number)
+    return flask.render_template('show_picture.html', image_name = image_name,
+                                                      image_number = image_number,
+                                                      image_style = image_style,
+                                                      bg_color = bg_color,
+                                                      font_color = font_color)
