@@ -247,45 +247,29 @@ class PiPhotobox(object):
                 else:
                     if (command == self.key):
                         auth = 1
-                        try:
-                            self.authCursor.execute("""UPDATE user_auth SET Authentification={au} WHERE Username='{us}'""".format(au=auth, us=chat_name))
-                            self.connection_user_auth.commit()
-                        except sq.OperationalError:
-                            try:
-                                self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
-                                self.connection_user_auth.commit()                       
-                            except sq.OperationalError:
-                                self.authCursor.execute("""CREATE TABLE user_auth (Username TEXT ,Authentification SMALLINT, Time_Stamp TEXT)""")
-    
-                                self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
-                                self.connection_user_auth.commit()
-                                pass
-                            pass
-            
+                        self.authCursor.execute("""UPDATE user_auth SET Authentification={au} WHERE Username='{us}'""".format(au=auth, us=chat_name))
+                        self.connection_user_auth.commit()
+                        print('Update ' + chat_name)
                         piBot.sendMessage(chat_id,str('Du kannst die Photobox jetzt nutzen.'))
                     else:
                         piBot.sendMessage(chat_id,str('Du musst zuerst den Code eingeben um die Photobox zu nutzen. Frag ' + admin + ' danach.'))
 
                 
-            except sq.OperationalError:
+            except:
                 auth = 0
                 try:
-                    self.authCursor.execute("""UPDATE user_auth SET Authentification={au} WHERE Username='{us}'""".format(au=auth, us=chat_name))
+                    self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
                     self.connection_user_auth.commit()
+                    print('Insert ' + chat_name)
                 except sq.OperationalError:
-                    try:
-                        self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
-                        self.connection_user_auth.commit()
-                    except sq.OperationalError:
-                        self.authCursor.execute("""CREATE TABLE user_auth (Username TEXT, Authentification SMALLINT, Time_Stamp TEXT)""")
-
-                        self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
-                        self.connection_user_auth.commit()
-                        pass
+                    self.authCursor.execute("""CREATE TABLE user_auth (Username TEXT, Authentification SMALLINT, Time_Stamp TEXT)""")
+                    self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
+                    self.connection_user_auth.commit()
+                    print('Create database and insert ' + chat_name)
                     pass
+                pass
             
                 piBot.sendMessage(chat_id,str('Du musst zuerst den Code eingeben um die Photobox zu nutzen. Frag ' + admin + ' danach.'))
-
 
 ### Start Photobox if used as main class
 if __name__ == '__main__':
