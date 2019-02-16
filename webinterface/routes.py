@@ -5,6 +5,7 @@ from flask_socketio import SocketIO
 import threading
 import numpy as np
 import sqlite3 as sq
+import re
 
 from configuration import *
 
@@ -39,7 +40,8 @@ def start_image_updater():
 
    
     # Generate the name for the html template. I was not sure how to use a variable in "url_for", so I trie this as workaround
-    pic_name = "/Pictures/photobox_" + str(int(photo_number)) + ".jpg"
+    lastfolder = re.findall('([^\/]+$)', imagefolder)[0]
+    pic_name = "/" + lastfolder + "/photobox_" + str(int(photo_number)).zfill(4) + ".jpg"
 
     emit_var = ['Bildnummer: ' + str(int(photo_number)), pic_name]
     socket.emit('update', emit_var)
@@ -55,4 +57,9 @@ socket.init_app(app)
 def test():
     image_name = 'photobox_1.jpg'
     image_number = '1'
-    return flask.render_template('show_picture.html', image_name = image_name, image_number = image_number)
+    return flask.render_template('show_picture.html', image_name = image_name,
+                                                      image_number = image_number,
+                                                      image_height = image_height,
+                                                      image_width = image_width,
+                                                      bg_color = bg_color,
+                                                      font_color = font_color)

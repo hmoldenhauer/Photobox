@@ -1,56 +1,81 @@
 # Photobox
 
-## First of all
-Some parts of the code has to be modified for different brands.
+A Photobox that will take magnificent images of your party.
 
-__Please leave an issue, if you have to modify the code. So that I can release an
-universial program code in a later version.__
+__If you have new ideas, need to modify the code or find any bugs, please leave an issue.
+So  the Photobox can be developed to a more univeral program in a later version.__
 
-At this points you have to change your code probably:
+## What do you need?
 
-1. `photo.py line 51`
-It depends on the output name of the image.
-
-2. `photo.py line 83`
-This line depends on the output of your presenter
-
-3. `telegram.py line 164`
-It depends on the output name of the image.
-
-4. `webinterface/routes.py line 42`
-It depends on the output name of the image.
+To set everything up you need
+- a Telegram-Account
+- a Raspberry Pi
+- a camera that is gphoto compatible. You might find the list [here](http://www.gphoto.org/doc/remote/)
+- a mouse, keyboard or any other trigger to release your raspi to tell the camera to take pictures.
 
 ## How to start
-First install the required packages:
 
-`sudo apt-get install gphoto2`
+Here everything to set up your Photobox will be explained briefly.
 
-`pip install RPi.GPIO`
+### Installation
+Install the required packages:
 
-`pip install sh`
+```bash
+sudo apt-get install gphoto2
+sudo apt-get install imagemagick
+pip install RPi.GPIO
+pip install sh
+pip instal pynput
+pip install telepot
+pip install flask
+pip install flask_socketio
+pip --no-cache-dir install matplotlib   # optimized for low memory on raspi
+```
 
-`pip instal pynput`
+### Generating your Bot
 
-`pip install telepot`
+In Telegram search for the BotFather and ask it to create you a new bot.
+You might as well read the [Telegram Bot Website](https://core.telegram.org/bots) to help you in doing so.
+If you are impatient and want to start right away, jump to part 6. BotFather.
 
-`pip install flask`
+Choose a cool name for your Bot and generate it with the help of BotFather.
+If you have generated your Bot the BotFather will send you the ID of your Bot.
+It might look like `110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw`.
 
-`pip install flask_socketio`
+### Configuring your Photobox
 
-`pip --no-cache-dir install matplotlib`   # optimized for low memory on raspi
+With that set up, you can start to configure your Bot.
+1. You need to create a file named `ID.txt` in your Photobox repo. Here you need to insert
+   the ID of your telegram bot. BotFather send it to you.
+2. You need to create a file named `key.txt`. This will be the login code users have to enter
+   the first time they have contact to the bot.
+3. Configure the `configuration.py` accordingly to your setup.
 
-You need a file named `ID.txt` where the ID of your telegram bot is saved.
-Also a file is required named `admin_id.txt`, where the User-ID of the admin
-(host of the photobox is saved). The ID is required because the admin receives
-an error report everytime a error occurs.
+#### Set the admin ID of your Photobox
+You need to change the `admin_id.txt`. There the User-ID of the admin
+(host of the photobox, e.g. you) is saved. The ID is required because the admin receives
+an error report everytime an error occurs.
 
-After installing all essential packages just run the following three programs:
+Just start a terminal in your repo folder and type
+```bash
+python telegram.py
+```
+this will start the telegram bot. Now you need to go to your Telegram account and search for
+your bot. Start it and it will send you the admin ID. Terminate the telegram bot for now.
 
-`python telegram.py`
+Write the ID send to you into the `admin_id.txt`
 
-`python webinterface.py`
+Now you are all set. And your Photobox is ready for operation.
 
-`python photo.py`
+### Starting the Photobox
 
-Need to kill gphoto2
-https://www.youtube.com/watch?v=1eAYxnSU2aw
+After installing all essential packages and configuring your telegram bot just run the following:
+
+```bash
+sh start.sh
+```
+
+## Errors
+
+If the PhotoBox is not working you might have to change your code in `photo.py line 31`.
+It depends on the output name of the image.

@@ -1,9 +1,8 @@
 test.txt
 ID.txt
 admin_id.txt
+key.txt
 *.dat
-./stats_dats/*.dat
-./stats_dats/*.jpg
+/stats_dats*
 __pycache__
 *.pyc
-stats_dats/*.txt
