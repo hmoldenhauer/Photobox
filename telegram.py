@@ -69,8 +69,9 @@ class PiPhotobox(object):
       plt.clf()
       x_pos = np.arange(len(name_list))
       plt.bar(x_pos,number_list)
-      plt.xticks(x_pos,name_list)
+      plt.xticks(x_pos,name_list, rotation='vertical')
       plt.ylabel('Anzahl Downloads')
+      plt.tight_layout()
       plt.savefig(homefolder + '/stats_dats/user_statistic.png')
 
       ### Send requested Plot to the User
@@ -93,9 +94,10 @@ class PiPhotobox(object):
       plt.clf()
       plt.hist(image_number_log, bins=range(min(image_number_log), max(image_number_log) + 2, 1), rwidth=0.95 )
       plt.grid(axis='y', alpha = 0.8)
-      plt.xticks(range(min(image_number_log), max(image_number_log) + 2, 1))
+      plt.xticks(range(min(image_number_log), max(image_number_log) + 2, 1), rotation='vertical')
       plt.xlabel('Bildnummer')
       plt.ylabel('Anzahl Downloads')
+      plt.tight_layout()
       plt.savefig(homefolder + '/stats_dats/number_downloads.jpg')
 
       #### Generate a list with the two most requested images ##############################################################################
@@ -132,10 +134,11 @@ class PiPhotobox(object):
       ### Generated a plot
       plt.clf()
       plt.hist(time_stampt_list,  bins=range(min(time_stampt_list), max(time_stampt_list) + 2, 1), rwidth=0.95 )
-      plt.xticks(range(min(time_stampt_list), max(time_stampt_list) + 2, 1))
+      plt.xticks(range(min(time_stampt_list), max(time_stampt_list) + 2, 1), rotation='vertical')
       plt.xlabel('Uhrzeit')
       plt.ylabel(ylabel_name)
       plt.grid(axis='y', alpha = 0.8)
+      plt.tight_layout()
       plt.savefig(homefolder + '/stats_dats/time_based_statistic.jpg')
 
       piBot.sendMessage(chat_id, str('Hier ist die zeitaufgelöste Statistik:'))
