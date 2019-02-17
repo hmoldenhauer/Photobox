@@ -80,6 +80,7 @@ connection_number_log = sq.connect(homefolder + '/stats_dats/image_taken.dat',
 image_numberCursor = connection_number_log.cursor()
 
 print('Photobox running')
+gp('--set-config', 'autofocus=0')
 
 
 # Let's take some images!!

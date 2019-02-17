@@ -79,3 +79,9 @@ sh start.sh
 
 If the PhotoBox is not working you might have to change your code in `photo.py line 31`.
 It depends on the output name of the image.
+
+## Useful
+
+You might run `gphoto2 --summary` and `gphoto2 --list-all-config` to see all configurations possible
+with your camera. It might be that you need to change your autofocus-settings. For a Nikon D7000 I had
+to run `gphoto2 --get-config autofocus` to see if it was switched on (0) or off (1).
