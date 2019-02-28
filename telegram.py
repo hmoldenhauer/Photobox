@@ -15,8 +15,7 @@ from configuration import *
 def get_ID(ID_file):
     try:
         with open(ID_file, 'r') as f:
-            # [:-1] to cut '\n'
-            ID = f.readline()[:-1]
+            ID = f.readline()[:-1]     # [:-1] to cut '\n'
 
             if ID == '\n':
                 print('No ID included in ' + ID_file)
@@ -35,11 +34,17 @@ class PiPhotobox(object):
         self.key = get_ID(keyfile)
         
         # user_auth is a db to save the authorization data
-        self.connection_user_auth = sq.connect(homefolder + '/stats_dats/user_auth.dat', check_same_thread=False)
+        user_auth_db = homefolder + '/stats_dats/user_auth.dat'
+        self.connection_user_auth = sq.connect(user_auth_db,
+                                               check_same_thread=False)
         # user_log is a db to save the user_data
-        self.connection_user_log = sq.connect(homefolder + '/stats_dats/user_log.dat', check_same_thread=False)
+        user_log_db = homefolder + '/stats_dats/user_log.dat'
+        self.connection_user_log = sq.connect(user_log_db,
+                                              check_same_thread=False)
         # image_taken is a db to keep track of all taken images
-        self.connection_number_log = sq.connect(homefolder + '/stats_dats/image_taken.dat', check_same_thread=False)
+        image_taken_db = homefolder + '/stats_dats/image_taken.dat'
+        self.connection_number_log = sq.connect(image_taken_db,
+                                                check_same_thread=False)
         # get the cursor to both db's
         self.authCursor = self.connection_user_auth.cursor()
         self.baseCursor = self.connection_user_log.cursor()
@@ -51,108 +56,136 @@ class PiPhotobox(object):
         self.connection_number_log.close()
 
 
-    ##########################################################################################################################
-    ### Function to generated a Bar plot, thats shows which user requested how many images ###################################
-    ##########################################################################################################################
+    ###################################################################
+    ### Function to generated a Bar plot,
+    ### thats shows which user requested how many images
+    ###################################################################
     def name_downloads_statistic(self,chat_id):
-      self.baseCursor = self.connection_user_log.cursor()
-      self.baseCursor.execute(""" SELECT Username FROM user_log""")
+      stat_image = homefolder + '/stats_dats/user_statistic.png'
 
-      ### Generate the data
+      self.baseCursor = self.connection_user_log.cursor()
+      self.baseCursor.execute("SELECT Username FROM user_log")
+
+      # Generate the data
       name_list = []
       number_list = []
       for element in Counter(self.baseCursor.fetchall()).most_common():
         name_list.append(element[0][0])
         number_list.append(element[1])
 
-      ### Generate Plot
+      # Generate Plot
       plt.clf()
       x_pos = np.arange(len(name_list))
       plt.bar(x_pos,number_list)
       plt.xticks(x_pos,name_list, rotation='vertical')
       plt.ylabel('Anzahl Downloads')
       plt.tight_layout()
-      plt.savefig(homefolder + '/stats_dats/user_statistic.png')
+      plt.savefig(stat_image)
 
-      ### Send requested Plot to the User
-      piBot.sendMessage(chat_id, str('Hier die Nutzerstatistik:'))
-      piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/user_statistic.png', 'rb'))
+      # Send requested Plot to the User
+      piBot.sendMessage(chat_id, 'Hier die Nutzerstatistik:')
+      piBot.sendPhoto(chat_id, photo=open(stat_image, 'rb'))
 
       return 0
 
-    ###########################################################################################################################################################################
-    ### Function to generated a Histogram, which shows the how often a image was got a download request. Further, you get the image number of the two most requested images ###
-    ###########################################################################################################################################################################
+    ###################################################################
+    ### Function to generate a Histogram,
+    ### which shows how often an image was downloaded.
+    ### Further you get the image number of the two most
+    ### popular images
+    ###################################################################
     def most_popular_statistic(self,chat_id):
+      stat_image = homefolder + '/stats_dats/number_downloads.jpg'
 
-      self.baseCursor.execute(""" SELECT Image_Number FROM user_log""")
+      self.baseCursor.execute("SELECT Image_Number FROM user_log")
 
-      ### Generated a List with all Imagenumber
+      # Generated a List with all Imagenumbers
       image_number_log = [ i[0] for i in self.baseCursor.fetchall()]
 
-      ### Plot a histogramm
+      # Plot a histogramm
       plt.clf()
-      plt.hist(image_number_log, bins=range(min(image_number_log), max(image_number_log) + 2, 1), rwidth=0.95 )
+      plt.hist(image_number_log,
+               bins=range(min(image_number_log),
+                          max(image_number_log) + 2, 1),
+               rwidth=0.95)
       plt.grid(axis='y', alpha = 0.8)
-      plt.xticks(range(min(image_number_log), max(image_number_log) + 2, 1), rotation='vertical')
+      plt.xticks(range(min(image_number_log),
+                       max(image_number_log) + 2, 1),
+                 rotation='vertical')
       plt.xlabel('Bildnummer')
       plt.ylabel('Anzahl Downloads')
       plt.tight_layout()
-      plt.savefig(homefolder + '/stats_dats/number_downloads.jpg')
+      plt.savefig(stat_image)
 
-      #### Generate a list with the two most requested images ##############################################################################
-      image_number_log_max = Counter(image_number_log).most_common(2) ## Get the number with the most requests
+      # Generate a list with the two most requested images
+      image_number_log_max = Counter(image_number_log).most_common(2)
 
-      ## Send the requested stats
-      piBot.sendMessage(chat_id, 'Bildnummer ' + str(image_number_log_max[0][0]) +'\n ist im Moment mit ' + str(image_number_log_max[0][1]) + ' Downloads, dass gefragteste Bild. \n\n'
-        'Dahinter ist Bildnummer ' + str(image_number_log_max[1][0]) + ' \n mit ' + str(image_number_log_max[1][1]) + ' Downloads, dass zweit gefragteste Bild.')
+      # Send the requested stats
+      chat_message = ('Bildnummer '
+                      + str(image_number_log_max[0][0])
+                      +'\n ist im Moment mit '
+                      + str(image_number_log_max[0][1])
+                      + ' Downloads, dass gefragteste Bild.\n\n'
+                      + 'Dahinter ist Bildnummer '
+                      + str(image_number_log_max[1][0])
+                      +'\nmit '
+                      + str(image_number_log_max[1][1])
+                      + ' Downloads, dass zweit gefragteste Bild.')
+      piBot.sendMessage(chat_id, chat_message)
 
-      piBot.sendMessage(chat_id, str('Hier ist die Fotonnachfragestatistik:'))
-      piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/number_downloads.jpg', 'rb'))
+      piBot.sendMessage(chat_id, 'Hier ist die Fotonnachfragestatistik:')
+      piBot.sendPhoto(chat_id, photo=open(stat_image, 'rb'))
 
       return 0
 
-    ##########################################################################################################################
-    ### Function to generated a timebased Histogram, that shows how many images were downloaded during a spezific timeslot ###
-    ##########################################################################################################################
+    ###################################################################
+    ### Function to generate a timebased Histogram,
+    ### that shows how many images were downloaded during a timeslot
+    ###################################################################
     def time_based_statistic(self,chat_id,name):
+      stat_image = homefolder + '/stats_dats/time_based_statistic.jpg'
 
       if name == 'timebased':
-          self.baseCursor.execute(""" SELECT Time_Stampt FROM user_log""")
+          self.baseCursor.execute("SELECT Time_Stampt FROM user_log")
           ylabel_name = 'Anzahl Downloads'
-          ### Generate a int list with all the timestamps. A Stamp is formatted like this: '20:30'
-          time_stampt_list = [ int(i[0].split(':')[0]) for i in self.baseCursor.fetchall()]
+          # Generate an int list with all the timestamps.
+          # A Stamp is formatted like this: '20:30'
+          time_stampt_list = [int(i[0].split(':')[0]) for
+                              i in self.baseCursor.fetchall()]
 
       elif name == 'taken':
-          self.image_numberCursor.execute(""" SELECT Time_Stampt FROM image_taken""")
+          self.image_numberCursor.execute("SELECT Time_Stampt FROM image_taken")
           ylabel_name = 'Anzahl Fotos'
-          time_stampt_list = [ int(i[0].split(':')[0]) for i in self.image_numberCursor.fetchall()]
+          time_stampt_list = [int(i[0].split(':')[0]) for
+                              i in self.image_numberCursor.fetchall()]
 
       else:
         pass
 
-      ### Generated a plot
+      # Generate a plot
       plt.clf()
-      plt.hist(time_stampt_list,  bins=range(min(time_stampt_list), max(time_stampt_list) + 2, 1), rwidth=0.95 )
-      plt.xticks(range(min(time_stampt_list), max(time_stampt_list) + 2, 1), rotation='vertical')
+      plt.hist(time_stampt_list,
+               bins=range(min(time_stampt_list),
+                          max(time_stampt_list) + 2, 1),
+               rwidth=0.95)
+      plt.xticks(range(min(time_stampt_list),
+                       max(time_stampt_list) + 2, 1),
+                 rotation='vertical')
       plt.xlabel('Uhrzeit')
       plt.ylabel(ylabel_name)
       plt.grid(axis='y', alpha = 0.8)
       plt.tight_layout()
-      plt.savefig(homefolder + '/stats_dats/time_based_statistic.jpg')
+      plt.savefig(stat_image)
 
-      piBot.sendMessage(chat_id, str('Hier ist die zeitaufgelöste Statistik:'))
-      piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/time_based_statistic.jpg', 'rb'))
+      piBot.sendMessage(chat_id, 'Hier ist die zeitaufgelöste Statistik:')
+      piBot.sendPhoto(chat_id, photo=open(stat_image, 'rb'))
 
       return 0
 
     def send_image(self, msg):
         # Get the required information of a request
-        # message text
         command = msg['text']
-        # chat_id = Who has sent the message
         chat_id = msg['chat']['id']
-        # What was the username of the person who has requested an image or plot
         chat_name =  msg['chat']['username']
         
         # check if bot is configured properly
@@ -161,47 +194,81 @@ class PiPhotobox(object):
             piBot.sendMessage(chat_id, 'Die admin-id ist: ' + str(chat_id))
         else:
             try:
-                self.authCursor.execute("""SELECT Authentification FROM user_auth WHERE Username='{us}'""".format(us=chat_name))
+                sql_command = """SELECT Authentification FROM user_auth
+                                 WHERE Username=?"""
+                self.authCursor.execute(sql_command, (chat_name, ))
                 authorized = self.authCursor.fetchone()[0]
             
                 if authorized == 1:
-                    # alle funktionen nutzbar
-                    ### Split Command message to get the command and eventually the image_number ###
-
+                    # Split Command message to get the command
                     command = command.split()
+
                     # Check the kind of command
                     if (command[0] == u'Image'):
                 
                         # Fehler möglich, bei erstem Bild und erstem User
                         if (command[1] == 'last'):
-                            # get number from max_file_number.txt
-                            f = open(homefolder + '/stats_dats/max_file_number.txt', 'r')
+                            # get max_file_number
+                            number_file = homefolder + '/stats_dats/max_file_number.txt'
+                            f = open(number_file, 'r')
                             max_file_number = [int(x) for x in next(f).split()]
                             f.close()
 
-                            piBot.sendMessage(chat_id,str('Du erhälst Bild ') + str(max_file_number[0]) )
+                            chat_message = ('Du erhältst Bild '
+                                           + str(max_file_number[0]))
+                            piBot.sendMessage(chat_id, chat_message)
 
-                            piBot.sendPhoto(chat_id, photo=open('./photobox_small_' + str(max_file_number[0]).zfill(4) + '.jpg', 'rb'))
+                            photo_file = ('./photobox_small_'
+                                         + str(max_file_number[0]).zfill(4)
+                                         + '.jpg')
+                            piBot.sendPhoto(chat_id, photo=open(photo_file, 'rb'))
 
-                            self.baseCursor.execute("""INSERT INTO user_log VALUES("{}", {}, {}, "{}")""".format(str(chat_name),chat_id, int(max_file_number[0]), str(dtime.datetime.now().time().strftime("%H:%M"))) )
+                            sql_command = "INSERT INTO user_log VALUES (?, ?, ?, ?)"
+                            time = dtime.datetime.now().time().strftime("%H:%M")
+                            values = [chat_name,
+                                      chat_id,
+                                      max_file_number[0],
+                                      time]
+                            self.baseCursor.execute(sql_command, values)
                             self.connection_user_log.commit()
 
                         else:
                             try:
-                                piBot.sendMessage(chat_id,str('Du erhälst Bild ') + str(command[1]) )
+                                chat_message = 'Du erhälst Bild ' + str(command[1]) 
+                                piBot.sendMessage(chat_id, chat_message)
 
                                 # send image
-                                piBot.sendPhoto(chat_id, photo=open('./photobox_small_' + str(command[1]).zfill(4) + '.jpg', 'rb'))
+                                photo_file = ('./photobox_small_'
+                                             + str(command[1]).zfill(4)
+                                             + '.jpg')
+                                piBot.sendPhoto(chat_id, photo=open(photo_file, 'rb'))
 
-                                self.baseCursor.execute("""INSERT INTO user_log VALUES("{}", {}, {}, "{}")""".format(str(chat_name),chat_id, int(command[1]), str(dtime.datetime.now().time().strftime("%H:%M"))) )
+                                sql_command = "INSERT INTO user_log VALUES (?, ?, ?, ?)"
+                                time = dtime.datetime.now().time().strftime("%H:%M")
+                                values = [chat_name,
+                                          chat_id,
+                                          command[1],
+                                          time] 
+                                self.baseCursor.execute(sql_command, values)
                                 self.connection_user_log.commit()
 
                             # No table was founded error
                             # Solution: Create new table
-                            except sq.OperationalError:
-
-                                self.baseCursor.execute(""" CREATE TABLE user_log(Username TEXT ,User_ID SMALLINT, Image_Number SMALLINT,Time_Stampt TEXT)""")
-                                self.baseCursor.execute("""INSERT INTO user_log VALUES("{}", {}, {}, "{}")""".format(str(chat_name),chat_id, int(command[1]), str(dtime.datetime.now().time().strftime("%H:%M"))) )
+                            except sq.OperationalError as e:
+                                print(e)
+                                sql_command = """CREATE TABLE user_log
+                                                 (Username TEXT,
+                                                  User_ID SMALLINT,
+                                                  Image_Number SMALLINT,
+                                                  Time_Stampt TEXT)"""
+                                self.baseCursor.execute(sql_command)
+                                sql_command = "INSERT INTO user_log VALUES (?, ?, ?, ?)"
+                                time = dtime.datetime.now().time().strftime("%H:%M")
+                                values = [chat_name,
+                                          chat_id,
+                                          command[1],
+                                          time] 
+                                self.baseCursor.execute(sql_command, values)
                                 self.connection_user_log.commit()
                                 pass
 
@@ -209,16 +276,36 @@ class PiPhotobox(object):
                             # Solution, Photobox answers the person and sends a message
                             # to the admin
                             except IOError as e:
-                                piBot.sendMessage(chat_id, 'Es gibt kein Foto mit der Nummer: ' + str(command[1]) )
-                                piBot.sendMessage(self.admin_id, 'Nicht vorhandenes Foto wurde angefragt: ' + str(command[1])+'.\n\n Hier zur Sicherheit nochmal der Fehlercode: \n\n' + str(e) + '\n\n Der ausführende User ist: \n' + str(chat_name))
+                                print(e)
+                                chat_message = ('Es gibt kein Foto mit der Nummer: '
+                                               + str(command[1]))
+                                piBot.sendMessage(chat_id, chat_message)
+                                chat_message = ('Nicht vorhandenes Foto wurde angefragt: '
+                                               + str(command[1])
+                                               +'.\n\n Der Fehlercode ist: \n\n'
+                                               + str(e)
+                                               + '\n\n Der ausführende User ist: \n'
+                                               + str(chat_name))
+                                piBot.sendMessage(self.admin_id, chat_message)
                                 pass
 
                             # A unknown error occured
                             # Solution, Admin and person gets a message
                             except Exception as e:
                                 print(e)
-                                piBot.sendMessage(chat_id, 'Ein unbekannter Fehler ist aufgetreten. ' + admin + ' wird benachrichtigt.')
-                                piBot.sendMessage(self.admin_id, 'Es ist ein Fehler bei dem verschicken des Fotos mit der Nummer ' + str(command[1]) + ' aufgetreten. Der Fehler Code lautet: \n' + str(e)+ '.\n Auf den Fehler wird mit \pass reagiert. Der verursachende User ist: \n' + str(chat_name))
+                                chat_message = ('Ein unbekannter Fehler ist aufgetreten. '
+                                               + admin
+                                               + ' wird benachrichtigt.')
+                                piBot.sendMessage(chat_id, chat_message)
+                                chat_message = ('Es ist ein Fehler beim verschicken '
+                                               + 'des Fotos mit der Nummer '
+                                               + str(command[1])
+                                               + ' aufgetreten. Der Fehler Code ist: \n'
+                                               + str(e)
+                                               + '.\n Auf den Fehler wird mit \pass '
+                                               + 'reagiert. Der verursachende User ist:\n'
+                                               + str(chat_name))
+                                piBot.sendMessage(self.admin_id, chat_message)
                                 pass
 
                     elif command[0] == u'Stat':
@@ -237,42 +324,132 @@ class PiPhotobox(object):
                                 self.time_based_statistic(chat_id,'taken')
 
                             else:
-                                piBot.sendMessage(chat_id, 'Leider ist deine Auswahl nicht dabei.\n Zur Verfügung stehen die Befehle: \n\n --- name --- : Dieser Befehl (ohne die --- ) zeigt dir an welcher User wie viel Bilder gedownloadet hat \n\n --- popular --- \n Dieser Befehl (ohne die --- ) zeigt dir die beliebtesten Bilder \n\n --- timebased--- \n Dieser Befehl (ohne die --- ) zeigt dir wie viele Bilder zu einer bestimmten Uhrzeit (stündlich) gedownloadet wurden \n\n --- taken ---\n Dieser Befehl (ohne die ---) zeigt dir wie viele Bilder zu einer bestimmten Uhrzeit (stündlich) mit der Photobox aufgenommen wurden')
-                        except IndexError:
-                            piBot.sendMessage(chat_id, 'Du hast das Keyword vergessen.\n Zur Verfügung stehen die Keywords: \n\n --- name --- \n Dieser Befehl (ohne die --- ) zeigt dir an welcher User wie viel Bilder gedownloadet hat \n\n --- popular --- \n Dieser Befehl (ohne die --- ) zeigt dir die beliebtesten Bilder \n\n --- timebased--- \n Dieser Befehl (ohne die --- ) zeigt dir wie viele Bilder zu einer bestimmten Uhrzeit (stündlich) gedownloadet wurden \n\n --- taken ---\n Dieser Befehl (ohne die ---) zeigt dir wie viele Bilder zu einer bestimmten Uhrzeit (stündlich) mit der Photobox aufgenommen wurden')
+                                chat_message = ('Leider ist deine Auswahl nicht dabei.'
+                                               + '\nZur Verfügung stehen die Befehle:'
+                                               + '\n\n --- name --- \n'
+                                               + 'Dieser Befehl (ohne die --- ) zeigt '
+                                               + 'dir an welcher User wie viele Bilder '
+                                               + 'gedownloadet hat.'
+                                               + '\n\n --- popular --- \n'
+                                               + 'Dieser Befehl (ohne die --- ) zeigt '
+                                               + 'dir die beliebtesten Bilder'
+                                               + '\n\n --- timebased--- \n'
+                                               + 'Dieser Befehl (ohne die --- ) zeigt '
+                                               + 'dir wie viele Bilder zu einer '
+                                               + 'bestimmten Uhrzeit (stündlich) '
+                                               + 'gedownloadet wurden.'
+                                               + '\n\n --- taken ---\n'
+                                               + 'Dieser Befehl (ohne die ---) zeigt '
+                                               + 'dir wie viele Bilder zu einer '
+                                               + 'bestimmten Uhrzeit (stündlich) mit '
+                                               + 'der Photobox aufgenommen wurden.')
+                                piBot.sendMessage(chat_id, chat_message)
+                        except IndexError as e:
+                            print(e)
+                            chat_message = ('Du hast das Keyword vergessen.'
+                                           + '\nZur Verfügung stehen die Keywords:'
+                                           + '\n\n --- name --- \n'
+                                           + 'Dieser Befehl (ohne die --- ) zeigt '
+                                           + 'dir an welcher User wie viele Bilder '
+                                           + 'gedownloadet hat.'
+                                           + '\n\n --- popular --- \n'
+                                           + 'Dieser Befehl (ohne die --- ) zeigt '
+                                           + 'dir die beliebtesten Bilder'
+                                           + '\n\n --- timebased--- \n'
+                                           + 'Dieser Befehl (ohne die --- ) zeigt '
+                                           + 'dir wie viele Bilder zu einer '
+                                           + 'bestimmten Uhrzeit (stündlich) '
+                                           + 'gedownloadet wurden.'
+                                           + '\n\n --- taken ---\n'
+                                           + 'Dieser Befehl (ohne die ---) zeigt '
+                                           + 'dir wie viele Bilder zu einer '
+                                           + 'bestimmten Uhrzeit (stündlich) mit '
+                                           + 'der Photobox aufgenommen wurden.')
+                            piBot.sendMessage(chat_id, chat_message)
 
                     elif command[0] == u'Help':
-                        piBot.sendMessage(chat_id, admin + ' wird benachrichtigt.')
-                        piBot.sendMessage(self.admin_id,'Hilfeanfrage von: ' + str(chat_name))
+                        chat_message = admin + ' wird benachrichtigt.'
+                        piBot.sendMessage(chat_id, chat_message)
+                        chat_message = 'Hilfeanfrage von: ' + str(chat_name)
+                        piBot.sendMessage(self.admin_id, chat_message)
 
                     else:
-                        piBot.sendMessage(chat_id, 'Leider ist dein Befehl nicht in der Datenbank verzeichnet.\n Hier nochmal deine Möglichkeiten:\n\n --- Image image_number --- \n Hier erhälst du das Bild mit der Nummer image_number direkt auf dein Handy geschickt.\n Bsp: Image 7\n Um Bildnummer 7 zuerhalten. \n Statt einer Zahl kannst du mit Image last auch das letzte Bild anfordern. \n\n --- Stat keyword ---\n Hier erhälst du verschiedene Nutzerstatistiken der Photobox. Als Keyword stehen zur Verfügung:\n name, popular, timebased und taken.\nBsp:\n stat name \n\n --- Help ---\n Hier wird ' + admin + ' auf seinem Handy benachrichtigt und kommt schnellstmöglichst zu dir. Wenn er nicht kommt solltest du ihn suchen gehen.')
+                        chat_message = ('Leider ist dein Befehl nicht in der Datenbank '
+                                       + 'verzeichnet.\n Hier nochmal die Möglichkeiten:'
+                                       + '\n\n --- Image image_number --- \n'
+                                       + 'Hier erhälst du das Bild mit der Nummer '
+                                       + 'image_number direkt auf dein Handy geschickt.'
+                                       + '\n Bsp: Image 7\n'
+                                       + 'Um Bildnummer 7 zuerhalten.'
+                                       + '\n Statt einer Zahl kannst du mit Image last '
+                                       + 'auch das letzte Bild anfordern.'
+                                       + '\n\n --- Stat keyword ---\n'
+                                       + 'Hier erhälst du verschiedene Nutzerstatistiken '
+                                       + 'der Photobox. Als Keyword stehen zur Verfügung:'
+                                       + '\n name, popular, timebased und taken.'
+                                       + '\nBsp:\n stat name'
+                                       + '\n\n --- Help ---\n'
+                                       + 'Hier wird '
+                                       + admin
+                                       + ' auf seinem Handy benachrichtigt und kommt '
+                                       + 'schnellstmöglichst zu dir. Wenn er nicht '
+                                       + 'kommt solltest du ihn suchen gehen.')
+                        piBot.sendMessage(chat_id, chat_message)
                 else:
                     if (command == self.key):
                         auth = 1
-                        self.authCursor.execute("""UPDATE user_auth SET Authentification={au} WHERE Username='{us}'""".format(au=auth, us=chat_name))
+                        sql_command = """UPDATE user_auth SET Authentification=?
+                                         WHERE Username=?"""
+                        values = [auth, chat_name]
+                        self.authCursor.execute(sql_command, values)
                         self.connection_user_auth.commit()
                         print('Update ' + chat_name)
-                        piBot.sendMessage(chat_id,str('Du kannst die Photobox jetzt nutzen.'))
+                        chat_message = 'Du kannst die Photobox jetzt nutzen.'
+                        piBot.sendMessage(chat_id, chat_message)
                     else:
-                        piBot.sendMessage(chat_id,str('Du musst zuerst den Code eingeben um die Photobox zu nutzen. Frag ' + admin + ' danach.'))
+                        chat_message = ('Du musst zuerst den Code eingeben um die '
+                                       + 'Photobox zu nutzen. Frag '
+                                       + admin
+                                       + ' danach.')
+                        piBot.sendMessage(chat_id, chat_message)
 
                 
-            except:
+            except Exception as e:
+                print(e)
                 auth = 0
                 try:
-                    self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
+                    sql_command = "INSERT INTO user_auth VALUES (?, ?, ?)"
+                    time = dtime.datetime.now().time().strftime("%H:%M:%S")
+                    values = [chat_name,
+                              auth,
+                              time]
+                    self.authCursor.execute(sql_command, values)
                     self.connection_user_auth.commit()
                     print('Insert ' + chat_name)
-                except sq.OperationalError:
-                    self.authCursor.execute("""CREATE TABLE user_auth (Username TEXT, Authentification SMALLINT, Time_Stamp TEXT)""")
-                    self.authCursor.execute("""INSERT INTO user_auth VALUES("{}", {}, "{}")""".format(str(chat_name), auth, str(dtime.datetime.now().time().strftime("%H:%M:%S"))))
+                except sq.OperationalError as e:
+                    print(e)
+                    sql_command = """CREATE TABLE user_auth
+                                     (Username TEXT,
+                                      Authentification SMALLINT,
+                                      Time_Stamp TEXT)"""
+                    self.authCursor.execute(sql_command)
+
+                    sql_command = "INSERT INTO user_auth VALUES (?, ?, ?)"
+                    time = dtime.datetime.now().time().strftime("%H:%M:%S")
+                    values = [chat_name,
+                              auth,
+                              time]
+                    self.authCursor.execute(sql_command, values)
                     self.connection_user_auth.commit()
                     print('Create database and insert ' + chat_name)
                     pass
                 pass
             
-                piBot.sendMessage(chat_id,str('Du musst zuerst den Code eingeben um die Photobox zu nutzen. Frag ' + admin + ' danach.'))
+                chat_message = ('Du musst zuerst den Code eingeben um die Photobox '
+                               + 'zu nutzen. Frag '
+                               + admin
+                               + ' danach.')
+                piBot.sendMessage(chat_id, chat_message)
 
 ### Start Photobox if used as main class
 if __name__ == '__main__':
@@ -283,7 +460,7 @@ if __name__ == '__main__':
 
   try:
       # Start the Telegramm chat
-      MessageLoop(piBot, piphotobox.send_image).run_as_thread() # Start the Telegramm chat
+      MessageLoop(piBot, piphotobox.send_image).run_as_thread()
       print('start')
       while True:
           # Update the chat every second
