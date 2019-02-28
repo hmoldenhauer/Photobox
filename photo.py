@@ -12,24 +12,23 @@ def take_a_photo():
     try:
         sql_command = "SELECT max(Image_Number) FROM image_taken"
         image_numberCursor.execute(sql_command)
-        # max_file_number is the number of the latest photo
         max_file_number = image_numberCursor.fetchall()[0][0]
-    # If there is not db named "image_taken", we create one
+
+    # If there is not db named "image_taken", create one
     except sq.OperationalError:
-        sql_command = "CREATE TABLE image_taken (Image_Number SMALLINT, Time_Stampt TEXT)"
+        sql_command = """CREATE TABLE image_taken
+                         (Image_Number SMALLINT, Time_Stampt TEXT)"""
         image_numberCursor.execute(sql_command)
         connection_number_log.commit()
-        # Set max_file_number to zero (no images)
         max_file_number = 0
         pass
 
-    # we take a new photo, so we have to increase the number of max_photos
+    # take a new photo and increase the number of max_photos
     max_file_number += 1
     print('taking')
-    # takeing a photo
     gp('--capture-image-and-download')
 
-    # rename file, this depends on your camera !
+    # rename file, this depends on your camera
     max_file_number_str = str(int(max_file_number)).zfill(4)
     os.rename('capt0000.jpg', 'photobox_' + max_file_number_str + '.jpg')
 
@@ -54,19 +53,15 @@ def take_a_photo():
     time = dtime.datetime.now().time().strftime("%H:%M")
     values = [max_file_number, time]
     image_numberCursor.execute(sql_command, values)
-
-    # conncetion_number_log is a global variable
     connection_number_log.commit()
 
     print('Done')
-
 
 # Function used to clear GPIO pins and close db connection after usage
 def destroy():
     connection_number_log.close()
 
-
-# Function which detects the input key of the presenter
+# Function which detects the input key
 def on_press(key):
     if str(key) == photo_key:
         take_a_photo()
@@ -77,7 +72,6 @@ def on_press(key):
         print('nichts')
         pass
 
-
 # path to save media
 os.chdir(imagefolder)
 
@@ -86,8 +80,7 @@ global connection_number_log
 global image_numberCursor
 
 # connection to the db which includes the max_number of image taken
-# check_same_thread=True enables the possibility to read/write
-# the db with more than one program
+# enables the possibility to read/write the db with more than one program
 connection_number_log = sq.connect(homefolder + '/stats_dats/image_taken.dat',
                                    check_same_thread=False)
 image_numberCursor = connection_number_log.cursor()
@@ -95,13 +88,13 @@ image_numberCursor = connection_number_log.cursor()
 print('Photobox running')
 gp('--set-config', 'autofocus=0')
 
-# Let's take some images!!
+# take some images
 while True:
 
     try:
         # Listener reads the input over keyboard or presenter
-        # on_press is the function which is called when the pi gets an input
-        # via keyboard or presenter
+        # on_press is the function which is called when the pi gets
+        # an input via keyboard or presenter
         with Listener(on_press=on_press,) as listener:
             listener.join()
     except KeyboardInterrupt:
