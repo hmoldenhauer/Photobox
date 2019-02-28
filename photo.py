@@ -10,12 +10,14 @@ from configuration import *
 def take_a_photo():
     # Try to get the last photo number
     try:
-        image_numberCursor.execute(""" SELECT max(Image_Number) FROM image_taken""")
+        sql_command = "SELECT max(Image_Number) FROM image_taken"
+        image_numberCursor.execute(sql_command)
         # max_file_number is the number of the latest photo
         max_file_number = image_numberCursor.fetchall()[0][0]
     # If there is not db named "image_taken", we create one
     except sq.OperationalError:
-        image_numberCursor.execute(""" CREATE TABLE image_taken(Image_Number SMALLINT ,Time_Stampt TEXT)""")
+        sql_command = "CREATE TABLE image_taken (Image_Number SMALLINT, Time_Stampt TEXT)"
+        image_numberCursor.execute(sql_command)
         connection_number_log.commit()
         # Set max_file_number to zero (no images)
         max_file_number = 0
@@ -25,22 +27,33 @@ def take_a_photo():
     max_file_number += 1
     print('taking')
     # takeing a photo
-    gp( '--capture-image-and-download' )
+    gp('--capture-image-and-download')
 
     # rename file, this depends on your camera !
-    os.rename( 'capt0000.jpg', 'photobox_' + str(int(max_file_number)).zfill(4) + '.jpg') #rename file
-    bashCommand = 'convert -geometry ' + str(int(int(image_width)/2)) + 'x' + str(int(int(image_height)/2)) + \
-                  ' -quality 90 ' + 'photobox_' + str(int(max_file_number)).zfill(4) + '.jpg' +\
-                  ' photobox_small_' + str(int(max_file_number)).zfill(4) + '.jpg'
+    max_file_number_str = str(int(max_file_number)).zfill(4)
+    os.rename('capt0000.jpg', 'photobox_' + max_file_number_str + '.jpg')
+
+    # convert image to smaller resolution
+    bashCommand = ('convert -geometry '
+                  + str(int(int(image_width)/2))
+                  + 'x'
+                  + str(int(int(image_height)/2))
+                  + ' -quality 90 '
+                  + 'photobox_' + max_file_number_str + '.jpg'
+                  + ' photobox_small_' + max_file_number_str + '.jpg')
     print(bashCommand)
     os.system(bashCommand)
 
+    # write max file number to file
     f = open(homefolder + '/stats_dats/max_file_number.txt', 'w')
     f.write('%i' % max_file_number)
     f.close()
 
     # save photo_number and a timestamp to the db
-    image_numberCursor.execute("""INSERT INTO image_taken VALUES({}, "{}")""".format(max_file_number,dtime.datetime.now().time().strftime("%H:%M")) )
+    sql_command = "INSERT INTO image_taken VALUES (?, ?)"
+    time = dtime.datetime.now().time().strftime("%H:%M")
+    values = [max_file_number, time]
+    image_numberCursor.execute(sql_command, values)
 
     # conncetion_number_log is a global variable
     connection_number_log.commit()
@@ -81,7 +94,6 @@ image_numberCursor = connection_number_log.cursor()
 
 print('Photobox running')
 gp('--set-config', 'autofocus=0')
-
 
 # Let's take some images!!
 while True:
