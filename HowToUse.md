@@ -10,9 +10,9 @@
 
 1. Installiere Telegramm auf deinem Handy.
 2. Starte Telegram und gib dir unter Einstellungen einen Benutzernamen.
-3. Suche nach absolventenfeier und füge den Bot deinen Chats hinzu.
+3. Suche nach `absolventenfeier` und füge den Bot deinen Chats hinzu.
 4. Starte den Bot.
 5. Schicke das Passwort an den Bot.
-   Ab jetzt kannst du den Bot nutzen und dir mit 'Image nummer'
+   Ab jetzt kannst du den Bot nutzen und dir mit `Image Bildnummer`
    die Bilder anschauen. Wenn du einen ungültigen Befehl an die Photobox
    schickst, bekommst du eine Übersicht aller Befehle.
