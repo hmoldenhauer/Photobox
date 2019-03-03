@@ -7,6 +7,11 @@ import numpy as np
 import sqlite3 as sq
 import re
 
+# only report errors to console
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
 from configuration import *
 
 # the socket gives the opportunity to update the website
@@ -24,9 +29,9 @@ def init_app():
 
 def start_image_updater():
     # Everysecond we call the funtion start_image_updater
-    # That means that every 1.5 seconds we update the webside and check
+    # That means that every 1.0 seconds we update the webside and check
     # latest photo_number
-    t = threading.Timer(1.5, start_image_updater)
+    t = threading.Timer(1.0, start_image_updater)
     # Daemon threads are useful for background supporting tasks
     # such as garbage collection, releasing memory of unused
     # objects and removing unwanted entries from the cache.
