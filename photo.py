@@ -33,7 +33,11 @@ def take_a_photo():
     os.rename('capt0000.jpg', 'photobox_' + max_file_number_str + '.jpg')
 
     # convert image to smaller resolution
-    bashCommand = ('convert -geometry '
+    bashCommand = ('convert -define jpeg:size='
+                  + str(int(image_width))
+                  + 'x'
+                  + str(int(image_height))
+                  + ' -geometry '
                   + str(int(int(image_width)/2))
                   + 'x'
                   + str(int(int(image_height)/2))
@@ -86,7 +90,7 @@ connection_number_log = sq.connect(homefolder + '/stats_dats/image_taken.dat',
 image_numberCursor = connection_number_log.cursor()
 
 print('Photobox running')
-gp('--set-config', 'autofocus=0')
+#gp('--set-config', 'autofocus=0')
 
 # take some images
 while True:
