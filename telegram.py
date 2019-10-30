@@ -100,17 +100,15 @@ class PiPhotobox(object):
 
         # Generated a List with all Imagenumbers
         image_number_log = [i[0] for i in self.baseCursor.fetchall()]
+        min = min(image_number_log)
+        max = max(image_number_log)
+        range = range(min, max + 2, 1)
 
         # Plot a histogramm
         plt.clf()
-        plt.hist(image_number_log,
-                 bins=range(min(image_number_log),
-                            max(image_number_log) + 2, 1),
-                 rwidth=0.95)
+        plt.hist(image_number_log, bins=range, rwidth=0.95)
         plt.grid(axis='y', alpha = 0.8)
-        plt.xticks(range(min(image_number_log),
-                         max(image_number_log) + 2, 1),
-                   rotation='vertical')
+        plt.xticks(range, rotation='vertical')
         plt.xlabel('Bildnummer')
         plt.ylabel('Anzahl Downloads')
         plt.tight_layout()
@@ -125,8 +123,11 @@ class PiPhotobox(object):
 
         # Send the requested stats
         chat_message = ('Bildnummer %(most_com_img)s'
-                        '\nist im Moment mit %(most_com_img_downl)s'
-                        'Downloads, dass gefragteste Bild.\n\n' % locals())
+                        '\nist im Moment mit %(most_com_img_downl)s '
+                        'Downloads das gefragteste Bild.\n\n'
+                        'Dahinter ist Bildnummer %(sec_most_com_img)s'
+                        '\nmit %(sec_most_com_img_downl)s '
+                        'Downloads, dass zweit gefragteste Bild.' % locals())
         piBot.sendMessage(chat_id, chat_message)
 
         piBot.sendMessage(chat_id, 'Hier ist die Fotonachfragestatistik:')
