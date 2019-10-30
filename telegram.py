@@ -142,7 +142,12 @@ class PiPhotobox(object):
     def time_based_statistic(self,chat_id,name):
         stat_image = homefolder + '/stats_dats/time_based_statistic.jpg'
 
-        if name == 'timebased':
+        keys = {
+                'timebased' : timebased,
+                'taken' : taken,
+                }
+
+        def timebased():
             self.baseCursor.execute("SELECT Time_Stampt FROM user_log")
             ylabel_name = 'Anzahl Downloads'
             # Generate an int list with all the timestamps.
@@ -150,14 +155,13 @@ class PiPhotobox(object):
             time_stampt_list = [int(i[0].split(':')[0]) for
                                 i in self.baseCursor.fetchall()]
 
-        elif name == 'taken':
+        def taken():
             self.image_numberCursor.execute("SELECT Time_Stampt FROM image_taken")
             ylabel_name = 'Anzahl Fotos'
             time_stampt_list = [int(i[0].split(':')[0]) for
                                 i in self.image_numberCursor.fetchall()]
 
-        else:
-            pass
+        keys[name]()
 
         # Generate a plot
         minimum = min(time_stampt_list)
