@@ -124,9 +124,9 @@ class PiPhotobox(object):
         sec_most_com_img_downl = image_number_log_max[1][1]
 
         # Send the requested stats
-        chat_message = ("""Bildnummer %(most_com_img)s
-                           \nist im Moment mit %(most_com_img_downl)s
-                           Downloads, dass gefragteste Bild.\n\n""" % locals())
+        chat_message = ('Bildnummer %(most_com_img)s'
+                        '\nist im Moment mit %(most_com_img_downl)s'
+                        'Downloads, dass gefragteste Bild.\n\n' % locals())
         piBot.sendMessage(chat_id, chat_message)
 
         piBot.sendMessage(chat_id, 'Hier ist die Fotonachfragestatistik:')
