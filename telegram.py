@@ -100,15 +100,15 @@ class PiPhotobox(object):
 
         # Generated a List with all Imagenumbers
         image_number_log = [i[0] for i in self.baseCursor.fetchall()]
-        min = min(image_number_log)
-        max = max(image_number_log)
-        range = range(min, max + 2, 1)
+        minimum = min(image_number_log)
+        maximum = max(image_number_log)
+        rng = range(minimum, maximum + 2, 1)
 
         # Plot a histogramm
         plt.clf()
-        plt.hist(image_number_log, bins=range, rwidth=0.95)
+        plt.hist(image_number_log, bins=rng, rwidth=0.95)
         plt.grid(axis='y', alpha = 0.8)
-        plt.xticks(range, rotation='vertical')
+        plt.xticks(rng, rotation='vertical')
         plt.xlabel('Bildnummer')
         plt.ylabel('Anzahl Downloads')
         plt.tight_layout()
