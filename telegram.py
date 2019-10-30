@@ -148,14 +148,14 @@ class PiPhotobox(object):
             # Generate an int list with all the timestamps.
             # A Stamp is formatted like this: '20:30'
             stampt_list = [int(i[0].split(':')[0]) for
-                                i in self.baseCursor.fetchall()]
+                           i in self.baseCursor.fetchall()]
             return ylabel, stampt_list
 
         def taken():
             self.image_numberCursor.execute("SELECT Time_Stampt FROM image_taken")
-            ylabel_name = 'Anzahl Fotos'
-            time_stampt_list = [int(i[0].split(':')[0]) for
-                                i in self.image_numberCursor.fetchall()]
+            ylabel = 'Anzahl Fotos'
+            stampt_list = [int(i[0].split(':')[0]) for
+                           i in self.image_numberCursor.fetchall()]
             return ylabel, stampt_list
 
         keys = {
