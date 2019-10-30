@@ -33,7 +33,7 @@ class PiPhotobox(object):
         self.admin_id = int(np.genfromtxt(path_to_admin_id,unpack = True))
         # key needed to be allowed to get images
         self.key = get_ID(keyfile)
-        
+
         # user_auth is a db to save the authorization data
         self.connection_user_auth = sq.connect(homefolder + '/stats_dats/user_auth.dat', check_same_thread=False)
         # user_log is a db to save the user_data
@@ -55,96 +55,96 @@ class PiPhotobox(object):
     ### Function to generated a Bar plot, thats shows which user requested how many images ###################################
     ##########################################################################################################################
     def name_downloads_statistic(self,chat_id):
-      self.baseCursor = self.connection_user_log.cursor()
-      self.baseCursor.execute(""" SELECT Username FROM user_log""")
+        self.baseCursor = self.connection_user_log.cursor()
+        self.baseCursor.execute(""" SELECT Username FROM user_log""")
 
-      ### Generate the data
-      name_list = []
-      number_list = []
-      for element in Counter(self.baseCursor.fetchall()).most_common():
-        name_list.append(element[0][0])
-        number_list.append(element[1])
+        ### Generate the data
+        name_list = []
+        number_list = []
+        for element in Counter(self.baseCursor.fetchall()).most_common():
+            name_list.append(element[0][0])
+            number_list.append(element[1])
 
-      ### Generate Plot
-      plt.clf()
-      x_pos = np.arange(len(name_list))
-      plt.bar(x_pos,number_list)
-      plt.xticks(x_pos,name_list, rotation='vertical')
-      plt.ylabel('Anzahl Downloads')
-      plt.tight_layout()
-      plt.savefig(homefolder + '/stats_dats/user_statistic.png')
+        ### Generate Plot
+        plt.clf()
+        x_pos = np.arange(len(name_list))
+        plt.bar(x_pos,number_list)
+        plt.xticks(x_pos,name_list, rotation='vertical')
+        plt.ylabel('Anzahl Downloads')
+        plt.tight_layout()
+        plt.savefig(homefolder + '/stats_dats/user_statistic.png')
 
-      ### Send requested Plot to the User
-      piBot.sendMessage(chat_id, str('Hier die Nutzerstatistik:'))
-      piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/user_statistic.png', 'rb'))
+        ### Send requested Plot to the User
+        piBot.sendMessage(chat_id, str('Hier die Nutzerstatistik:'))
+        piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/user_statistic.png', 'rb'))
 
-      return 0
+        return 0
 
     ###########################################################################################################################################################################
     ### Function to generated a Histogram, which shows the how often a image was got a download request. Further, you get the image number of the two most requested images ###
     ###########################################################################################################################################################################
     def most_popular_statistic(self,chat_id):
 
-      self.baseCursor.execute(""" SELECT Image_Number FROM user_log""")
+        self.baseCursor.execute(""" SELECT Image_Number FROM user_log""")
 
-      ### Generated a List with all Imagenumber
-      image_number_log = [ i[0] for i in self.baseCursor.fetchall()]
+        ### Generated a List with all Imagenumber
+        image_number_log = [ i[0] for i in self.baseCursor.fetchall()]
 
-      ### Plot a histogramm
-      plt.clf()
-      plt.hist(image_number_log, bins=range(min(image_number_log), max(image_number_log) + 2, 1), rwidth=0.95 )
-      plt.grid(axis='y', alpha = 0.8)
-      plt.xticks(range(min(image_number_log), max(image_number_log) + 2, 1), rotation='vertical')
-      plt.xlabel('Bildnummer')
-      plt.ylabel('Anzahl Downloads')
-      plt.tight_layout()
-      plt.savefig(homefolder + '/stats_dats/number_downloads.jpg')
+        ### Plot a histogramm
+        plt.clf()
+        plt.hist(image_number_log, bins=range(min(image_number_log), max(image_number_log) + 2, 1), rwidth=0.95 )
+        plt.grid(axis='y', alpha = 0.8)
+        plt.xticks(range(min(image_number_log), max(image_number_log) + 2, 1), rotation='vertical')
+        plt.xlabel('Bildnummer')
+        plt.ylabel('Anzahl Downloads')
+        plt.tight_layout()
+        plt.savefig(homefolder + '/stats_dats/number_downloads.jpg')
 
-      #### Generate a list with the two most requested images ##############################################################################
-      image_number_log_max = Counter(image_number_log).most_common(2) ## Get the number with the most requests
+        #### Generate a list with the two most requested images ##############################################################################
+        image_number_log_max = Counter(image_number_log).most_common(2) ## Get the number with the most requests
 
-      ## Send the requested stats
-      piBot.sendMessage(chat_id, 'Bildnummer ' + str(image_number_log_max[0][0]) +'\n ist im Moment mit ' + str(image_number_log_max[0][1]) + ' Downloads, dass gefragteste Bild. \n\n'
+        ## Send the requested stats
+        piBot.sendMessage(chat_id, 'Bildnummer ' + str(image_number_log_max[0][0]) +'\n ist im Moment mit ' + str(image_number_log_max[0][1]) + ' Downloads, dass gefragteste Bild. \n\n'
         'Dahinter ist Bildnummer ' + str(image_number_log_max[1][0]) + ' \n mit ' + str(image_number_log_max[1][1]) + ' Downloads, dass zweit gefragteste Bild.')
 
-      piBot.sendMessage(chat_id, str('Hier ist die Fotonnachfragestatistik:'))
-      piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/number_downloads.jpg', 'rb'))
+        piBot.sendMessage(chat_id, str('Hier ist die Fotonnachfragestatistik:'))
+        piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/number_downloads.jpg', 'rb'))
 
-      return 0
+        return 0
 
     ##########################################################################################################################
     ### Function to generated a timebased Histogram, that shows how many images were downloaded during a spezific timeslot ###
     ##########################################################################################################################
     def time_based_statistic(self,chat_id,name):
 
-      if name == 'timebased':
-          self.baseCursor.execute(""" SELECT Time_Stampt FROM user_log""")
-          ylabel_name = 'Anzahl Downloads'
-          ### Generate a int list with all the timestamps. A Stamp is formatted like this: '20:30'
-          time_stampt_list = [ int(i[0].split(':')[0]) for i in self.baseCursor.fetchall()]
+        if name == 'timebased':
+            self.baseCursor.execute(""" SELECT Time_Stampt FROM user_log""")
+            ylabel_name = 'Anzahl Downloads'
+            ### Generate a int list with all the timestamps. A Stamp is formatted like this: '20:30'
+            time_stampt_list = [ int(i[0].split(':')[0]) for i in self.baseCursor.fetchall()]
 
-      elif name == 'taken':
-          self.image_numberCursor.execute(""" SELECT Time_Stampt FROM image_taken""")
-          ylabel_name = 'Anzahl Fotos'
-          time_stampt_list = [ int(i[0].split(':')[0]) for i in self.image_numberCursor.fetchall()]
+        elif name == 'taken':
+            self.image_numberCursor.execute(""" SELECT Time_Stampt FROM image_taken""")
+            ylabel_name = 'Anzahl Fotos'
+            time_stampt_list = [ int(i[0].split(':')[0]) for i in self.image_numberCursor.fetchall()]
 
-      else:
-        pass
+        else:
+            pass
 
-      ### Generated a plot
-      plt.clf()
-      plt.hist(time_stampt_list,  bins=range(min(time_stampt_list), max(time_stampt_list) + 2, 1), rwidth=0.95 )
-      plt.xticks(range(min(time_stampt_list), max(time_stampt_list) + 2, 1), rotation='vertical')
-      plt.xlabel('Uhrzeit')
-      plt.ylabel(ylabel_name)
-      plt.grid(axis='y', alpha = 0.8)
-      plt.tight_layout()
-      plt.savefig(homefolder + '/stats_dats/time_based_statistic.jpg')
+        ### Generated a plot
+        plt.clf()
+        plt.hist(time_stampt_list,  bins=range(min(time_stampt_list), max(time_stampt_list) + 2, 1), rwidth=0.95 )
+        plt.xticks(range(min(time_stampt_list), max(time_stampt_list) + 2, 1), rotation='vertical')
+        plt.xlabel('Uhrzeit')
+        plt.ylabel(ylabel_name)
+        plt.grid(axis='y', alpha = 0.8)
+        plt.tight_layout()
+        plt.savefig(homefolder + '/stats_dats/time_based_statistic.jpg')
 
-      piBot.sendMessage(chat_id, str('Hier ist die zeitaufgelöste Statistik:'))
-      piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/time_based_statistic.jpg', 'rb'))
+        piBot.sendMessage(chat_id, str('Hier ist die zeitaufgelöste Statistik:'))
+        piBot.sendPhoto(chat_id, photo=open(homefolder + '/stats_dats/time_based_statistic.jpg', 'rb'))
 
-      return 0
+        return 0
 
     def send_image(self, msg):
         # Get the required information of a request
@@ -154,7 +154,7 @@ class PiPhotobox(object):
         chat_id = msg['chat']['id']
         # What was the username of the person who has requested an image or plot
         chat_name =  msg['chat']['username']
-        
+
         # check if bot is configured properly
         if self.admin_id == 1:
             chat_id = msg['chat']['id']
@@ -163,7 +163,7 @@ class PiPhotobox(object):
             try:
                 self.authCursor.execute("""SELECT Authentification FROM user_auth WHERE Username='{us}'""".format(us=chat_name))
                 authorized = self.authCursor.fetchone()[0]
-            
+
                 if authorized == 1:
                     # alle funktionen nutzbar
                     ### Split Command message to get the command and eventually the image_number ###
@@ -171,7 +171,7 @@ class PiPhotobox(object):
                     command = command.split()
                     # Check the kind of command
                     if (command[0] == u'Image'):
-                
+
                         # Fehler möglich, bei erstem Bild und erstem User
                         if (command[1] == 'last'):
                             # get number from max_file_number.txt
@@ -257,7 +257,7 @@ class PiPhotobox(object):
                     else:
                         piBot.sendMessage(chat_id,str('Du musst zuerst den Code eingeben um die Photobox zu nutzen. Frag ' + admin + ' danach.'))
 
-                
+
             except:
                 auth = 0
                 try:
@@ -271,24 +271,24 @@ class PiPhotobox(object):
                     print('Create database and insert ' + chat_name)
                     pass
                 pass
-            
+
                 piBot.sendMessage(chat_id,str('Du musst zuerst den Code eingeben um die Photobox zu nutzen. Frag ' + admin + ' danach.'))
 
 ### Start Photobox if used as main class
 if __name__ == '__main__':
-  piBot = tp.Bot( get_ID('ID.txt') )
-  piphotobox = PiPhotobox('admin_id.txt')
+    piBot = tp.Bot( get_ID('ID.txt') )
+    piphotobox = PiPhotobox('admin_id.txt')
 
-  os.chdir(imagefolder)
+    os.chdir(imagefolder)
 
-  try:
-      # Start the Telegramm chat
-      MessageLoop(piBot, piphotobox.send_image).run_as_thread() # Start the Telegramm chat
-      print('start')
-      while True:
-          # Update the chat every second
-          time.sleep(1)
+    try:
+        # Start the Telegramm chat
+        MessageLoop(piBot, piphotobox.send_image).run_as_thread() # Start the Telegramm chat
+        print('start')
+        while True:
+            # Update the chat every second
+            time.sleep(1)
 
-  except KeyboardInterrupt:
+    except KeyboardInterrupt:
         print('Programm wird beendet')
         piphotobox.end_connection()
