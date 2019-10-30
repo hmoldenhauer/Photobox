@@ -142,11 +142,6 @@ class PiPhotobox(object):
     def time_based_statistic(self,chat_id,name):
         stat_image = homefolder + '/stats_dats/time_based_statistic.jpg'
 
-        keys = {
-                'timebased' : timebased,
-                'taken' : taken,
-                }
-
         def timebased():
             self.baseCursor.execute("SELECT Time_Stampt FROM user_log")
             ylabel_name = 'Anzahl Downloads'
@@ -160,6 +155,11 @@ class PiPhotobox(object):
             ylabel_name = 'Anzahl Fotos'
             time_stampt_list = [int(i[0].split(':')[0]) for
                                 i in self.image_numberCursor.fetchall()]
+
+        keys = {
+                'timebased' : timebased,
+                'taken' : taken,
+                }
 
         keys[name]()
 
