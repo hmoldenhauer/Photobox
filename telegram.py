@@ -140,44 +140,42 @@ class PiPhotobox(object):
     ### that shows how many images were downloaded during a timeslot
     ###################################################################
     def time_based_statistic(self,chat_id,name):
-      stat_image = homefolder + '/stats_dats/time_based_statistic.jpg'
+        stat_image = homefolder + '/stats_dats/time_based_statistic.jpg'
 
-      if name == 'timebased':
-          self.baseCursor.execute("SELECT Time_Stampt FROM user_log")
-          ylabel_name = 'Anzahl Downloads'
-          # Generate an int list with all the timestamps.
-          # A Stamp is formatted like this: '20:30'
-          time_stampt_list = [int(i[0].split(':')[0]) for
-                              i in self.baseCursor.fetchall()]
+        if name == 'timebased':
+            self.baseCursor.execute("SELECT Time_Stampt FROM user_log")
+            ylabel_name = 'Anzahl Downloads'
+            # Generate an int list with all the timestamps.
+            # A Stamp is formatted like this: '20:30'
+            time_stampt_list = [int(i[0].split(':')[0]) for
+                                i in self.baseCursor.fetchall()]
 
-      elif name == 'taken':
-          self.image_numberCursor.execute("SELECT Time_Stampt FROM image_taken")
-          ylabel_name = 'Anzahl Fotos'
-          time_stampt_list = [int(i[0].split(':')[0]) for
-                              i in self.image_numberCursor.fetchall()]
+        elif name == 'taken':
+            self.image_numberCursor.execute("SELECT Time_Stampt FROM image_taken")
+            ylabel_name = 'Anzahl Fotos'
+            time_stampt_list = [int(i[0].split(':')[0]) for
+                                i in self.image_numberCursor.fetchall()]
 
-      else:
-        pass
+        else:
+            pass
 
-      # Generate a plot
-      plt.clf()
-      plt.hist(time_stampt_list,
-               bins=range(min(time_stampt_list),
-                          max(time_stampt_list) + 2, 1),
-               rwidth=0.95)
-      plt.xticks(range(min(time_stampt_list),
-                       max(time_stampt_list) + 2, 1),
-                 rotation='vertical')
-      plt.xlabel('Uhrzeit')
-      plt.ylabel(ylabel_name)
-      plt.grid(axis='y', alpha = 0.8)
-      plt.tight_layout()
-      plt.savefig(stat_image)
+        # Generate a plot
+        minimum = min(time_stampt_list)
+        maximum = max(time_stampt_list)
+        rng = range(minimum, maximum + 2, 1)
+        plt.clf()
+        plt.hist(time_stampt_list, bins=rng, rwidth=0.95)
+        plt.xticks(rng, rotation='vertical')
+        plt.xlabel('Uhrzeit')
+        plt.ylabel(ylabel_name)
+        plt.grid(axis='y', alpha = 0.8)
+        plt.tight_layout()
+        plt.savefig(stat_image)
 
-      piBot.sendMessage(chat_id, 'Hier ist die zeitaufgelöste Statistik:')
-      piBot.sendPhoto(chat_id, photo=open(stat_image, 'rb'))
+        piBot.sendMessage(chat_id, 'Hier ist die zeitaufgelöste Statistik:')
+        piBot.sendPhoto(chat_id, photo=open(stat_image, 'rb'))
 
-      return 0
+        return 0
 
     def send_image(self, msg):
         # Get the required information of a request
