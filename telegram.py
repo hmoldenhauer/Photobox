@@ -144,24 +144,26 @@ class PiPhotobox(object):
 
         def timebased():
             self.baseCursor.execute("SELECT Time_Stampt FROM user_log")
-            ylabel_name = 'Anzahl Downloads'
+            ylabel = 'Anzahl Downloads'
             # Generate an int list with all the timestamps.
             # A Stamp is formatted like this: '20:30'
-            time_stampt_list = [int(i[0].split(':')[0]) for
+            stampt_list = [int(i[0].split(':')[0]) for
                                 i in self.baseCursor.fetchall()]
+            return ylabel, stampt_list
 
         def taken():
             self.image_numberCursor.execute("SELECT Time_Stampt FROM image_taken")
             ylabel_name = 'Anzahl Fotos'
             time_stampt_list = [int(i[0].split(':')[0]) for
                                 i in self.image_numberCursor.fetchall()]
+            return ylabel, stampt_list
 
         keys = {
                 'timebased' : timebased,
                 'taken' : taken,
                 }
 
-        keys[name]()
+        ylabel_name, time_stampt_list = keys[name]()
 
         # Generate a plot
         minimum = min(time_stampt_list)
