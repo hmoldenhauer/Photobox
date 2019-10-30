@@ -32,7 +32,7 @@ class PiPhotobox(object):
         self.admin_id = int(np.genfromtxt(path_to_admin_id,unpack = True))
         # key needed to be allowed to get images
         self.key = get_ID(keyfile)
-        
+
         # user_auth is a db to save the authorization data
         user_auth_db = homefolder + '/stats_dats/user_auth.dat'
         self.connection_user_auth = sq.connect(user_auth_db,
@@ -55,38 +55,37 @@ class PiPhotobox(object):
         self.connection_user_log.close()
         self.connection_number_log.close()
 
-
     ###################################################################
     ### Function to generated a Bar plot,
     ### thats shows which user requested how many images
     ###################################################################
     def name_downloads_statistic(self,chat_id):
-      stat_image = homefolder + '/stats_dats/user_statistic.png'
+        stat_image = homefolder + '/stats_dats/user_statistic.png'
 
-      self.baseCursor = self.connection_user_log.cursor()
-      self.baseCursor.execute("SELECT Username FROM user_log")
+        self.baseCursor = self.connection_user_log.cursor()
+        self.baseCursor.execute("SELECT Username FROM user_log")
 
-      # Generate the data
-      name_list = []
-      number_list = []
-      for element in Counter(self.baseCursor.fetchall()).most_common():
-        name_list.append(element[0][0])
-        number_list.append(element[1])
+        # Generate the data
+        name_list = []
+        number_list = []
+        for element in Counter(self.baseCursor.fetchall()).most_common():
+            name_list.append(element[0][0])
+            number_list.append(element[1])
 
-      # Generate Plot
-      plt.clf()
-      x_pos = np.arange(len(name_list))
-      plt.bar(x_pos,number_list)
-      plt.xticks(x_pos,name_list, rotation='vertical')
-      plt.ylabel('Anzahl Downloads')
-      plt.tight_layout()
-      plt.savefig(stat_image)
+        # Generate Plot
+        plt.clf()
+        x_pos = np.arange(len(name_list))
+        plt.bar(x_pos,number_list)
+        plt.xticks(x_pos,name_list, rotation='vertical')
+        plt.ylabel('Anzahl Downloads')
+        plt.tight_layout()
+        plt.savefig(stat_image)
 
-      # Send requested Plot to the User
-      piBot.sendMessage(chat_id, 'Hier die Nutzerstatistik:')
-      piBot.sendPhoto(chat_id, photo=open(stat_image, 'rb'))
+        # Send requested Plot to the User
+        piBot.sendMessage(chat_id, 'Hier die Nutzerstatistik:')
+        piBot.sendPhoto(chat_id, photo=open(stat_image, 'rb'))
 
-      return 0
+        return 0
 
     ###################################################################
     ### Function to generate a Histogram,
@@ -95,48 +94,45 @@ class PiPhotobox(object):
     ### popular images
     ###################################################################
     def most_popular_statistic(self,chat_id):
-      stat_image = homefolder + '/stats_dats/number_downloads.jpg'
+        stat_image = homefolder + '/stats_dats/number_downloads.jpg'
 
-      self.baseCursor.execute("SELECT Image_Number FROM user_log")
+        self.baseCursor.execute("SELECT Image_Number FROM user_log")
 
-      # Generated a List with all Imagenumbers
-      image_number_log = [ i[0] for i in self.baseCursor.fetchall()]
+        # Generated a List with all Imagenumbers
+        image_number_log = [i[0] for i in self.baseCursor.fetchall()]
 
-      # Plot a histogramm
-      plt.clf()
-      plt.hist(image_number_log,
-               bins=range(min(image_number_log),
-                          max(image_number_log) + 2, 1),
-               rwidth=0.95)
-      plt.grid(axis='y', alpha = 0.8)
-      plt.xticks(range(min(image_number_log),
-                       max(image_number_log) + 2, 1),
-                 rotation='vertical')
-      plt.xlabel('Bildnummer')
-      plt.ylabel('Anzahl Downloads')
-      plt.tight_layout()
-      plt.savefig(stat_image)
+        # Plot a histogramm
+        plt.clf()
+        plt.hist(image_number_log,
+                 bins=range(min(image_number_log),
+                            max(image_number_log) + 2, 1),
+                 rwidth=0.95)
+        plt.grid(axis='y', alpha = 0.8)
+        plt.xticks(range(min(image_number_log),
+                         max(image_number_log) + 2, 1),
+                   rotation='vertical')
+        plt.xlabel('Bildnummer')
+        plt.ylabel('Anzahl Downloads')
+        plt.tight_layout()
+        plt.savefig(stat_image)
 
-      # Generate a list with the two most requested images
-      image_number_log_max = Counter(image_number_log).most_common(2)
+        # Generate a list with the two most requested images
+        image_number_log_max = Counter(image_number_log).most_common(2)
+        most_com_img = image_number_log_max[0][0]
+        most_com_img_downl = image_number_log_max[0][1]
+        sec_most_com_img = image_number_log_max[1][0]
+        sec_most_com_img_downl = image_number_log_max[1][1]
 
-      # Send the requested stats
-      chat_message = ('Bildnummer '
-                      + str(image_number_log_max[0][0])
-                      +'\n ist im Moment mit '
-                      + str(image_number_log_max[0][1])
-                      + ' Downloads, dass gefragteste Bild.\n\n'
-                      + 'Dahinter ist Bildnummer '
-                      + str(image_number_log_max[1][0])
-                      +'\nmit '
-                      + str(image_number_log_max[1][1])
-                      + ' Downloads, dass zweit gefragteste Bild.')
-      piBot.sendMessage(chat_id, chat_message)
+        # Send the requested stats
+        chat_message = ("""Bildnummer %(most_com_img)s
+                           \nist im Moment mit %(most_com_img_downl)s
+                           Downloads, dass gefragteste Bild.\n\n""" % locals())
+        piBot.sendMessage(chat_id, chat_message)
 
-      piBot.sendMessage(chat_id, 'Hier ist die Fotonnachfragestatistik:')
-      piBot.sendPhoto(chat_id, photo=open(stat_image, 'rb'))
+        piBot.sendMessage(chat_id, 'Hier ist die Fotonachfragestatistik:')
+        piBot.sendPhoto(chat_id, photo=open(stat_image, 'rb'))
 
-      return 0
+        return 0
 
     ###################################################################
     ### Function to generate a timebased Histogram,
@@ -187,7 +183,7 @@ class PiPhotobox(object):
         command = msg['text']
         chat_id = msg['chat']['id']
         chat_name =  msg['chat']['username']
-        
+
         # check if bot is configured properly
         if self.admin_id == 1:
             chat_id = msg['chat']['id']
@@ -198,14 +194,14 @@ class PiPhotobox(object):
                                  WHERE Username=?"""
                 self.authCursor.execute(sql_command, (chat_name, ))
                 authorized = self.authCursor.fetchone()[0]
-            
+
                 if authorized == 1:
                     # Split Command message to get the command
                     command = command.split()
 
                     # Check the kind of command
                     if (command[0] == u'Image'):
-                
+
                         # Fehler möglich, bei erstem Bild und erstem User
                         if (command[1] == 'last'):
                             # get max_file_number
@@ -234,7 +230,7 @@ class PiPhotobox(object):
 
                         else:
                             try:
-                                chat_message = 'Du erhälst Bild ' + str(command[1]) 
+                                chat_message = 'Du erhälst Bild ' + str(command[1])
                                 piBot.sendMessage(chat_id, chat_message)
 
                                 # send image
@@ -248,7 +244,7 @@ class PiPhotobox(object):
                                 values = [chat_name,
                                           chat_id,
                                           command[1],
-                                          time] 
+                                          time]
                                 self.baseCursor.execute(sql_command, values)
                                 self.connection_user_log.commit()
 
@@ -267,7 +263,7 @@ class PiPhotobox(object):
                                 values = [chat_name,
                                           chat_id,
                                           command[1],
-                                          time] 
+                                          time]
                                 self.baseCursor.execute(sql_command, values)
                                 self.connection_user_log.commit()
                                 pass
@@ -413,7 +409,7 @@ class PiPhotobox(object):
                                        + ' danach.')
                         piBot.sendMessage(chat_id, chat_message)
 
-                
+
             except Exception as e:
                 print(e)
                 auth = 0
@@ -444,7 +440,7 @@ class PiPhotobox(object):
                     print('Create database and insert ' + chat_name)
                     pass
                 pass
-            
+
                 chat_message = ('Du musst zuerst den Code eingeben um die Photobox '
                                + 'zu nutzen. Frag '
                                + admin
